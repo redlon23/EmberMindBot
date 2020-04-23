@@ -10,7 +10,7 @@ const TradeLog = new Schema ({
     closeDate: { type: Date, required: false },
     currency: { type: String, required: false},
     quantity: { type: Number, required: true },
-    orderType: { type: String, required: true } //buy or sell
+    side: { type: String, required: true } //buy or sell
 });
 
 module.exports = mongoose.model('TradeLog', TradeLog, 'tradeLogs')
