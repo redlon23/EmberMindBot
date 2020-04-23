@@ -45,10 +45,29 @@ class BinanceFuturesAccess{
         let data = await request(requestOptions)
         return JSON.parse(data)
     }
+
+    async getSymbolPriceTicker(symbol){
+        const endPoint = "/fapi/v1/ticker/price"
+        const symbolString = `symbol=${symbol}`
+
+        let url = `${this.base}${endPoint}?${symbolString}`;
+        const requestOptions = {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            url,
+            method: "GET",
+        };
+
+        let data = await request(requestOptions)
+        return JSON.parse(data)
+    }
+
+
 }
 async function testHere(){
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.getOrderBook('BTCUSDT')
+    let awa = await bin.getSymbolPriceTicker('BTCUSDT')
     console.log(awa)
 }
 
