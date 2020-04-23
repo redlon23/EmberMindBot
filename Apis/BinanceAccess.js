@@ -12,7 +12,7 @@ class BinanceFuturesAccess{
         const endPoint = "/fapi/v1/account"
         const timestamp = Date.now();
         let timestampString = `timestamp=${timestamp}`
-        const signature = crypto.createHmac('sha256', secret).update(timestampString).digest('hex')
+        const signature = crypto.createHmac('sha256', this.secret).update(timestampString).digest('hex')
         let headers = {
             'X-Requested-With': 'XMLHttpRequest',
             'X-MBX-APIKEY': this.public
@@ -28,10 +28,27 @@ class BinanceFuturesAccess{
         let data = await request(requestOptions)
         return JSON.parse(data)
     }
+
+    async getOrderBook(symbol){
+        const endPoint = "/fapi/v1/depth"
+        const symbolString = `symbol=${symbol}`
+
+        let url = `${this.base}${endPoint}?${symbolString}`;
+        const requestOptions = {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            url,
+            method: "GET",
+        };
+
+        let data = await request(requestOptions)
+        return JSON.parse(data)
+    }
 }
 async function testHere(){
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.getAccountInformation()
+    let awa = await bin.getOrderBook('BTCUSDT')
     console.log(awa)
 }
 
