@@ -176,6 +176,22 @@ class BinanceFuturesAccess {
         return JSON.parse(data);   
     }
 
+    async cancelMultipleOrders(symbol = '', orderIdList = '', origClientOrderIdList = '', recvWindow = '') {
+        const endPoint = '/fapi/v1/batchOrders';
+        const params = sortParamsAlphabetically({symbol, orderIdList, origClientOrderIdList, recvWindow, timestamp: Date.now()})
+        const signature = this._getSignature(params);
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "DELETE"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);   
+    }
+
 }
 
 
