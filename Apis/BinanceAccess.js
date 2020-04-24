@@ -38,12 +38,12 @@ class BinanceFuturesAccess {
 
     async getAccountInformation(recvWindow = '') {
         const endPoint = "/fapi/v1/account"
-        const params = sortParamsAlphabetically({recvWindow, timestamp: Date.now()})
+        const params = sortParamsAlphabetically({ recvWindow, timestamp: Date.now() })
         const signature = this._getSignature(params)
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "GET"
         };
@@ -54,12 +54,12 @@ class BinanceFuturesAccess {
 
     async getAccountBalance(recvWindow = '') {
         const endPoint = "/fapi/v1/balance"
-        const params = sortParamsAlphabetically({recvWindow, timestamp: Date.now()})
+        const params = sortParamsAlphabetically({ recvWindow, timestamp: Date.now() })
         const signature = this._getSignature(params)
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "GET"
         };
@@ -70,7 +70,7 @@ class BinanceFuturesAccess {
 
     async getOrderBook(symbol, limit = '') {
         const endPoint = "/fapi/v1/depth"
-        const params = sortParamsAlphabetically({symbol, limit});
+        const params = sortParamsAlphabetically({ symbol, limit });
 
         let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
@@ -84,7 +84,7 @@ class BinanceFuturesAccess {
 
     async getSymbolPriceTicker(symbol = '') {
         const endPoint = "/fapi/v1/ticker/price"
-        const params = sortParamsAlphabetically({symbol})
+        const params = sortParamsAlphabetically({ symbol })
 
         let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
@@ -96,100 +96,120 @@ class BinanceFuturesAccess {
         return JSON.parse(data)
     }
 
-    async getIncomeHistory(symbol = '', incomeType = '', startTime = '', endTime = '', limit = '', recvWindow = ''){
+    async getIncomeHistory(symbol = '', incomeType = '', startTime = '', endTime = '', limit = '', recvWindow = '') {
         const endPoint = "/fapi/v1/income";
-        const params = sortParamsAlphabetically({symbol, incomeType, startTime, endTime, limit, recvWindow, timestamp: Date.now()});
+        const params = sortParamsAlphabetically({ symbol, incomeType, startTime, endTime, limit, recvWindow, timestamp: Date.now() });
         const signature = this._getSignature(params)
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "GET"
         }
 
         let data = await request(requestOptions);
-        return JSON.parse(data);    
+        return JSON.parse(data);
     }
 
-    async changeLeverage(symbol, leverage, recvWindow = ''){
+    async changeLeverage(symbol, leverage, recvWindow = '') {
         const endPoint = "/fapi/v1/leverage";
-        const params = sortParamsAlphabetically({symbol, leverage, recvWindow, timestamp: Date.now()});
+        const params = sortParamsAlphabetically({ symbol, leverage, recvWindow, timestamp: Date.now() });
         const signature = this._getSignature(params)
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "POST"
         }
 
         let data = await request(requestOptions);
-        return JSON.parse(data);   
+        return JSON.parse(data);
     }
 
-    async getOpenOrders(symbol = '', recvWindow = ''){
+    async getOpenOrders(symbol = '', recvWindow = '') {
         const endPoint = '/fapi/v1/openOrders'
-        const params = sortParamsAlphabetically({symbol, recvWindow, timestamp: Date.now()});
+        const params = sortParamsAlphabetically({ symbol, recvWindow, timestamp: Date.now() });
         const signature = this._getSignature(params)
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "GET"
         }
 
         let data = await request(requestOptions);
-        return JSON.parse(data);  
+        return JSON.parse(data);
     }
 
-    async cancelAllOpenOrders(symbol, recvWindow = ''){
+    async cancelAllOpenOrders(symbol, recvWindow = '') {
         const endPoint = '/fapi/v1/allOpenOrders';
-        const params = sortParamsAlphabetically({symbol, recvWindow, timestamp: Date.now()})
+        const params = sortParamsAlphabetically({ symbol, recvWindow, timestamp: Date.now() })
         const signature = this._getSignature(params);
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "DELETE"
         }
 
         let data = await request(requestOptions);
-        return JSON.parse(data);   
+        return JSON.parse(data);
     }
 
-    async cancelSingleOrder(symbol, orderId = '', origClientOrderId = '', recvWindow = ''){
+    async cancelSingleOrder(symbol, orderId = '', origClientOrderId = '', recvWindow = '') {
         const endPoint = '/fapi/v1/order';
-        const params = sortParamsAlphabetically({symbol, orderId, origClientOrderId, recvWindow, timestamp: Date.now()})
+        const params = sortParamsAlphabetically({ symbol, orderId, origClientOrderId, recvWindow, timestamp: Date.now() })
         const signature = this._getSignature(params);
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "DELETE"
         }
 
         let data = await request(requestOptions);
-        return JSON.parse(data);   
+        return JSON.parse(data);
     }
 
     async cancelMultipleOrders(symbol = '', orderIdList = '', origClientOrderIdList = '', recvWindow = '') {
         const endPoint = '/fapi/v1/batchOrders';
-        const params = sortParamsAlphabetically({symbol, orderIdList, origClientOrderIdList, recvWindow, timestamp: Date.now()})
+        const params = sortParamsAlphabetically({ symbol, orderIdList, origClientOrderIdList, recvWindow, timestamp: Date.now() })
         const signature = this._getSignature(params);
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
-            headers: {'X-MBX-APIKEY': this.public},
+            headers: { 'X-MBX-APIKEY': this.public },
             url,
             method: "DELETE"
         }
 
         let data = await request(requestOptions);
-        return JSON.parse(data);   
+        return JSON.parse(data);
+    }
+
+    async marketOrder(symbol, side, quantity, reduceOnly = '', positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
+        const endPoint = '/fapi/v1/order';
+        const params = sortParamsAlphabetically({
+            symbol, side, type: 'MARKET', reduceOnly, quantity, positionSide,
+            newClientOrderId, activationPrice, callbackRate, workingType, newOrderRespType,
+            timestamp: Date.now()
+        })
+        const signature = this._getSignature(params);
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: { 'X-MBX-APIKEY': this.public },
+            url,
+            method: "POST"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);
     }
 
 }
@@ -197,7 +217,7 @@ class BinanceFuturesAccess {
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.cancelSingleOrder("BTCUSDT").catch(err => console.log(err.message))
+    let awa = await bin.marketOrder("BTCUSDT", "BUY", 0.01).catch(err => console.log(err.message))
     console.log(awa)
 }
 
