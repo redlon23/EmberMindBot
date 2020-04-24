@@ -299,12 +299,28 @@ class BinanceFuturesAccess {
         let data = await request(requestOptions);
         return JSON.parse(data);   
     }
+
+    async placeTrailingStopMarket(symbol, side, quantity, callbackRate){
+        const endPoint = "/fapi/v1/order";
+        const params = sortParamsAlphabetically({symbol, side, quantity, callbackRate, reduceOnly:"true", type: "TRAILING_STOP_MARKET", timestamp: Date.now()})
+        const signature = this._getSignature(params);
+    
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "POST"
+        }
+    
+        let data = await request(requestOptions);
+        return JSON.parse(data);  
+    }
 }
 
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.placeTakeProfitOrder("BTCUSDT", "SELL", 0.01, 7600, 7600).catch(err => console.log(err.message))
+    let awa = await bin.placeTrailingStopMarket("BTCUSDT", "SELL", 0.01, 1).catch(err => console.log(err.message))
     console.log(awa)
 }
 
