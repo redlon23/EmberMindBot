@@ -32,17 +32,17 @@ class BinanceFuturesAccess {
         this.secret = 'cedf05c2d33e3c03344c8220f6aa7aed9538db9d7895da488310a3b8ab609c49';
     }
 
-    getSignature(requestParams) {
+    _getSignature(requestParams) {
         let sortedParams = sortParamsAlphabetically(requestParams);
         return crypto.createHmac('sha256', this.secret).update(sortedParams, "utf-8").digest('hex')
     }
 
-    async getAccountInformation() {
+    async getAccountInformation(recvWindow = '') {
         const endPoint = "/fapi/v1/account"
-        const timestamp = Date.now();
-        const signature = this.getSignature({timestamp})
+        const params = {timestamp: Date.now(), recvWindow: recvWindow}
+        const signature = this._getSignature(params)
 
-        let url = `${this.base}${endPoint}?timestamp=${timestamp}&signature=${signature}`;
+        let url = `${this.base}${endPoint}?${sortParamsAlphabetically(params)}&signature=${signature}`;
         const requestOptions = {
             headers: {'X-MBX-APIKEY': this.public},
             url,
@@ -53,15 +53,12 @@ class BinanceFuturesAccess {
         return JSON.parse(data)
     }
 
-    async getOrderBook(symbol){
+    async getOrderBook(symbol, limit = '') {
         const endPoint = "/fapi/v1/depth"
-        const symbolString = `symbol=${symbol}`
+        const params = {symbol: symbol, limit: limit}
 
-        let url = `${this.base}${endPoint}?${symbolString}`;
+        let url = `${this.base}${endPoint}?${sortParamsAlphabetically(params)}`;
         const requestOptions = {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            },
             url,
             method: "GET",
         };
@@ -70,15 +67,12 @@ class BinanceFuturesAccess {
         return JSON.parse(data)
     }
 
-    async getSymbolPriceTicker(symbol){
+    async getSymbolPriceTicker(symbol = '') {
         const endPoint = "/fapi/v1/ticker/price"
-        const symbolString = `symbol=${symbol}`
+        const params = {symbol: symbol}
 
-        let url = `${this.base}${endPoint}?${symbolString}`;
+        let url = `${this.base}${endPoint}?${sortParamsAlphabetically(params)}`;
         const requestOptions = {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            },
             url,
             method: "GET",
         };
@@ -93,7 +87,7 @@ class BinanceFuturesAccess {
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.getSymbolPriceTicker('BTCUSDT')
+    let awa = await bin.getSymbolPriceTicker('BNBUSDT')
     console.log(awa)
 }
 
