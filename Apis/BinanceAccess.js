@@ -33,20 +33,35 @@ class BinanceFuturesAccess {
     }
 
     _getSignature(requestParams) {
-        let sortedParams = sortParamsAlphabetically(requestParams);
-        return crypto.createHmac('sha256', this.secret).update(sortedParams, "utf-8").digest('hex')
+        return crypto.createHmac('sha256', this.secret).update(requestParams, "utf-8").digest('hex')
     }
 
     async getAccountInformation(recvWindow = '') {
         const endPoint = "/fapi/v1/account"
-        const params = {timestamp: Date.now(), recvWindow: recvWindow}
+        const params = sortParamsAlphabetically({timestamp: Date.now(), recvWindow: recvWindow})
         const signature = this._getSignature(params)
 
-        let url = `${this.base}${endPoint}?${sortParamsAlphabetically(params)}&signature=${signature}`;
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
         const requestOptions = {
             headers: {'X-MBX-APIKEY': this.public},
             url,
-            method: "GET",
+            method: "GET"
+        };
+
+        let data = await request(requestOptions)
+        return JSON.parse(data)
+    }
+
+    async getAccountBalance(recvWindow = '') {
+        const endPoint = "/fapi/v1/balance"
+        const params = sortParamsAlphabetically({timestamp: Date.now(), recvWindow: recvWindow})
+        const signature = this._getSignature(params)
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "GET"
         };
 
         let data = await request(requestOptions)
@@ -55,12 +70,12 @@ class BinanceFuturesAccess {
 
     async getOrderBook(symbol, limit = '') {
         const endPoint = "/fapi/v1/depth"
-        const params = {symbol: symbol, limit: limit}
+        const params = sortParamsAlphabetically({symbol: symbol, limit: limit});
 
-        let url = `${this.base}${endPoint}?${sortParamsAlphabetically(params)}`;
+        let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
             url,
-            method: "GET",
+            method: "GET"
         };
 
         let data = await request(requestOptions)
@@ -69,25 +84,88 @@ class BinanceFuturesAccess {
 
     async getSymbolPriceTicker(symbol = '') {
         const endPoint = "/fapi/v1/ticker/price"
-        const params = {symbol: symbol}
+        const params = sortParamsAlphabetically({symbol: symbol})
 
-        let url = `${this.base}${endPoint}?${sortParamsAlphabetically(params)}`;
+        let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
             url,
-            method: "GET",
+            method: "GET"
         };
 
         let data = await request(requestOptions)
         return JSON.parse(data)
     }
 
+    async getIncomeHistory(symbol = '', incomeType = '', startTime = '', endTime = '', limit = '', recvWindow = ''){
+        const endPoint = "/fapi/v1/income";
+        const params = sortParamsAlphabetically({symbol, incomeType, startTime, endTime, limit, recvWindow, timestamp: Date.now()});
+        const signature = this._getSignature(params)
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "GET"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);    
+    }
+
+    async changeLeverage(symbol, leverage, recvWindow = ''){
+        const endPoint = "/fapi/v1/leverage";
+        const params = sortParamsAlphabetically({symbol, leverage, recvWindow, timestamp: Date.now()});
+        const signature = this._getSignature(params)
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "POST"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);   
+    }
+
+    async getOpenOrders(symbol = '', recvWindow = ''){
+        const endPoint = '/fapi/v1/openOrders'
+        const params = sortParamsAlphabetically({symbol, recvWindow, timestamp: Date.now()});
+        const signature = this._getSignature(params)
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "GET"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);  
+    }
+
+    async cancelAllOpenOrders(symbol, recvWindow = ''){
+        const endPoint = '/fapi/v1/allOpenOrders';
+        const params = sortParamsAlphabetically({symbol, recvWindow, timestamp: Date.now()})
+        const signature = this._getSignature(params);
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "DELETE"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);   
+    }
 
 }
 
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.getSymbolPriceTicker('BNBUSDT')
+    let awa = await bin.getOpenOrders("BTCUSDT")
     console.log(awa)
 }
 
