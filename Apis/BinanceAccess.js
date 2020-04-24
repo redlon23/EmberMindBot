@@ -1,26 +1,50 @@
 const crypto = require("crypto")
 const request = require('request-promise');
 
-class BinanceFuturesAccess{
-    constructor(){
+function KeyValue(key, value) {
+    this.key = key;
+    this.value = value;
+}
+
+KeyValue.prototype = {
+    toString: function () {
+        return encodeURIComponent(this.key) + '=' + encodeURIComponent(this.value);
+    }
+};
+
+function sortParamsAlphabetically(requestParams) {
+    var query = [];
+    for (var key in requestParams) {
+        if (requestParams.hasOwnProperty(key)) {
+            query.push(new KeyValue(key, requestParams[key]));
+        }
+    }
+    query.sort(function (a, b) {
+        return a.key < b.key ? -1 : 1
+    });
+    return query.join('&');
+}
+
+class BinanceFuturesAccess {
+    constructor() {
         this.base = "https://testnet.binancefuture.com"
         this.public = '9e0562c79dbc44344ba26738c70c8ca47bc493ea8f250911cd7b30e9106ef9ab';
         this.secret = 'cedf05c2d33e3c03344c8220f6aa7aed9538db9d7895da488310a3b8ab609c49';
     }
 
-    async getAccountInformation(){
+    getSignature(requestParams) {
+        let sortedParams = sortParamsAlphabetically(requestParams);
+        return crypto.createHmac('sha256', this.secret).update(sortedParams, "utf-8").digest('hex')
+    }
+
+    async getAccountInformation() {
         const endPoint = "/fapi/v1/account"
         const timestamp = Date.now();
-        let timestampString = `timestamp=${timestamp}`
-        const signature = crypto.createHmac('sha256', this.secret).update(timestampString).digest('hex')
-        let headers = {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-MBX-APIKEY': this.public
-        };
+        const signature = this.getSignature({timestamp})
 
         let url = `${this.base}${endPoint}?timestamp=${timestamp}&signature=${signature}`;
         const requestOptions = {
-            headers: headers,
+            headers: {'X-MBX-APIKEY': this.public},
             url,
             method: "GET",
         };
@@ -65,7 +89,9 @@ class BinanceFuturesAccess{
 
 
 }
-async function testHere(){
+
+
+async function testHere() {
     let bin = new BinanceFuturesAccess()
     let awa = await bin.getSymbolPriceTicker('BTCUSDT')
     console.log(awa)
