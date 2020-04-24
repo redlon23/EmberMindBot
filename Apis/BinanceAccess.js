@@ -165,7 +165,7 @@ class BinanceFuturesAccess {
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.getOpenOrders("BTCUSDT")
+    let awa = await bin.getSymbolPriceTicker("BTCUSDT").catch(err => console.log(err.message))
     console.log(awa)
 }
 
