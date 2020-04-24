@@ -267,12 +267,44 @@ class BinanceFuturesAccess {
         let data = await request(requestOptions);
         return JSON.parse(data);
     }
+
+    async placeStopOrder(symbol, side, quantity, price, stopPrice){
+        const endPoint = "/fapi/v1/order";
+        const params = sortParamsAlphabetically({symbol, side, quantity, quantity, reduceOnly:"true", price, stopPrice, type: "STOP", timestamp: Date.now()})
+        const signature = this._getSignature(params);
+    
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "POST"
+        }
+    
+        let data = await request(requestOptions);
+        return JSON.parse(data);   
+    }
+
+    async placeTakeProfitOrder(symbol, side, quantity, price, stopPrice){
+        const endPoint = "/fapi/v1/order";
+        const params = sortParamsAlphabetically({symbol, side, quantity, quantity, reduceOnly:"true", price, stopPrice, type: "TAKE_PROFIT", timestamp: Date.now()})
+        const signature = this._getSignature(params);
+    
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "POST"
+        }
+    
+        let data = await request(requestOptions);
+        return JSON.parse(data);   
+    }
 }
 
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.takeProfitMarketOrder("BTCUSDT", "SELL", 1, 7600).catch(err => console.log(err.message))
+    let awa = await bin.placeTakeProfitOrder("BTCUSDT", "SELL", 0.01, 7600, 7600).catch(err => console.log(err.message))
     console.log(awa)
 }
 
