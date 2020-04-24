@@ -228,13 +228,51 @@ class BinanceFuturesAccess {
         return JSON.parse(data);   
     }
 
+    async stopMarketOrder(symbol, side, quantity, stopPrice, positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
+        const endPoint = '/fapi/v1/order';
+        const params = sortParamsAlphabetically({
+            symbol, side, type: 'STOP_MARKET', stopPrice, reduceOnly: 'true', quantity, positionSide,
+            newClientOrderId, activationPrice, callbackRate, workingType, newOrderRespType,
+            timestamp: Date.now()
+        })
+        const signature = this._getSignature(params);
 
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: { 'X-MBX-APIKEY': this.public },
+            url,
+            method: "POST"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);
+    }
+
+    async takeProfitMarketOrder(symbol, side, quantity, stopPrice, positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
+        const endPoint = '/fapi/v1/order';
+        const params = sortParamsAlphabetically({
+            symbol, side, type: 'TAKE_PROFIT_MARKET', stopPrice, reduceOnly: 'true', quantity, positionSide,
+            newClientOrderId, activationPrice, callbackRate, workingType, newOrderRespType,
+            timestamp: Date.now()
+        })
+        const signature = this._getSignature(params);
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: { 'X-MBX-APIKEY': this.public },
+            url,
+            method: "POST"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);
+    }
 }
 
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.marketOrder("BTCUSDT", "BUY", 0.01).catch(err => console.log(err.message))
+    let awa = await bin.takeProfitMarketOrder("BTCUSDT", "SELL", 1, 7600).catch(err => console.log(err.message))
     console.log(awa)
 }
 
