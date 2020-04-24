@@ -38,7 +38,7 @@ class BinanceFuturesAccess {
 
     async getAccountInformation(recvWindow = '') {
         const endPoint = "/fapi/v1/account"
-        const params = sortParamsAlphabetically({timestamp: Date.now(), recvWindow: recvWindow})
+        const params = sortParamsAlphabetically({recvWindow, timestamp: Date.now()})
         const signature = this._getSignature(params)
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
@@ -54,7 +54,7 @@ class BinanceFuturesAccess {
 
     async getAccountBalance(recvWindow = '') {
         const endPoint = "/fapi/v1/balance"
-        const params = sortParamsAlphabetically({timestamp: Date.now(), recvWindow: recvWindow})
+        const params = sortParamsAlphabetically({recvWindow, timestamp: Date.now()})
         const signature = this._getSignature(params)
 
         let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
@@ -70,7 +70,7 @@ class BinanceFuturesAccess {
 
     async getOrderBook(symbol, limit = '') {
         const endPoint = "/fapi/v1/depth"
-        const params = sortParamsAlphabetically({symbol: symbol, limit: limit});
+        const params = sortParamsAlphabetically({symbol, limit});
 
         let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
@@ -84,7 +84,7 @@ class BinanceFuturesAccess {
 
     async getSymbolPriceTicker(symbol = '') {
         const endPoint = "/fapi/v1/ticker/price"
-        const params = sortParamsAlphabetically({symbol: symbol})
+        const params = sortParamsAlphabetically({symbol})
 
         let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
