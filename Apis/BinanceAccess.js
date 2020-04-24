@@ -211,6 +211,23 @@ class BinanceFuturesAccess {
         let data = await request(requestOptions);
         return JSON.parse(data);
     }
+    
+    async placeLimitOrder(symbol, side, quantity, price, timeInForce, positionSide = '', reduceOnly = ''){
+        const endPoint = "/fapi/v1/order";
+        const params = sortParamsAlphabetically({symbol, side, positionSide, timeInForce, quantity, reduceOnly, price, type: "LIMIT", timestamp: Date.now()})
+        const signature = this._getSignature(params);
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "POST"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);   
+    }
+
 
 }
 
