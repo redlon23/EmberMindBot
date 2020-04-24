@@ -160,12 +160,28 @@ class BinanceFuturesAccess {
         return JSON.parse(data);   
     }
 
+    async cancelSingleOrder(symbol, orderId = '', origClientOrderId = '', recvWindow = ''){
+        const endPoint = '/fapi/v1/order';
+        const params = sortParamsAlphabetically({symbol, orderId, origClientOrderId, recvWindow, timestamp: Date.now()})
+        const signature = this._getSignature(params);
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
+            url,
+            method: "DELETE"
+        }
+
+        let data = await request(requestOptions);
+        return JSON.parse(data);   
+    }
+
 }
 
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.getSymbolPriceTicker("BTCUSDT").catch(err => console.log(err.message))
+    let awa = await bin.cancelSingleOrder("BTCUSDT").catch(err => console.log(err.message))
     console.log(awa)
 }
 
