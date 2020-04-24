@@ -12,7 +12,7 @@ class BinanceFuturesAccess{
         const endPoint = "/fapi/v1/account"
         const timestamp = Date.now();
         let timestampString = `timestamp=${timestamp}`
-        const signature = crypto.createHmac('sha256', secret).update(timestampString).digest('hex')
+        const signature = crypto.createHmac('sha256', this.secret).update(timestampString).digest('hex')
         let headers = {
             'X-Requested-With': 'XMLHttpRequest',
             'X-MBX-APIKEY': this.public
