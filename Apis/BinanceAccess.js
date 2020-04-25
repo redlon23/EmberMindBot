@@ -1,42 +1,15 @@
-const crypto = require("crypto")
 const request = require('request-promise');
-
-function KeyValue(key, value) {
-    this.key = key;
-    this.value = value;
-}
-
-KeyValue.prototype = {
-    toString: function () {
-        return encodeURIComponent(this.key) + '=' + encodeURIComponent(this.value);
-    }
-};
-
-function sortParamsAlphabetically(requestParams) {
-    var query = [];
-    for (var key in requestParams) {
-        if (requestParams.hasOwnProperty(key)) {
-            query.push(new KeyValue(key, requestParams[key]));
-        }
-    }
-    query.sort(function (a, b) {
-        return a.key < b.key ? -1 : 1
-    });
-    return query.join('&');
-}
-
-class BinanceFuturesAccess {
+const ApiAccess = require("./ApiAccess")
+const {sortParamsAlphabetically} = require("./util")
+class BinanceFuturesAccess extends ApiAccess {
     constructor() {
+        super()
         this.base = "https://testnet.binancefuture.com"
         this.public = '9e0562c79dbc44344ba26738c70c8ca47bc493ea8f250911cd7b30e9106ef9ab';
         this.secret = 'cedf05c2d33e3c03344c8220f6aa7aed9538db9d7895da488310a3b8ab609c49';
     }
 
-    _getSignature(requestParams) {
-        return crypto.createHmac('sha256', this.secret).update(requestParams, "utf-8").digest('hex')
-    }
-
-    async getAccountInformation(recvWindow = '') {
+    async getAccountInformation() {
         const endPoint = "/fapi/v1/account"
         const params = sortParamsAlphabetically({ recvWindow, timestamp: Date.now() })
         const signature = this._getSignature(params)
@@ -192,7 +165,7 @@ class BinanceFuturesAccess {
         return JSON.parse(data);
     }
 
-    async marketOrder(symbol, side, quantity, reduceOnly = '', positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
+    async placeMarketOrder(symbol, side, quantity, reduceOnly = '', positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
         const endPoint = '/fapi/v1/order';
         const params = sortParamsAlphabetically({
             symbol, side, type: 'MARKET', reduceOnly, quantity, positionSide,
@@ -228,7 +201,7 @@ class BinanceFuturesAccess {
         return JSON.parse(data);   
     }
 
-    async stopMarketOrder(symbol, side, quantity, stopPrice, positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
+    async placeStopMarketOrder(symbol, side, quantity, stopPrice, positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
         const endPoint = '/fapi/v1/order';
         const params = sortParamsAlphabetically({
             symbol, side, type: 'STOP_MARKET', stopPrice, reduceOnly: 'true', quantity, positionSide,
@@ -248,7 +221,7 @@ class BinanceFuturesAccess {
         return JSON.parse(data);
     }
 
-    async takeProfitMarketOrder(symbol, side, quantity, stopPrice, positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
+    async placeTakeProfitMarketOrder(symbol, side, quantity, stopPrice, positionSide = '', newClientOrderId = '', activationPrice = '', callbackRate = '', workingType = '', newOrderRespType = '') {
         const endPoint = '/fapi/v1/order';
         const params = sortParamsAlphabetically({
             symbol, side, type: 'TAKE_PROFIT_MARKET', stopPrice, reduceOnly: 'true', quantity, positionSide,
@@ -320,7 +293,7 @@ class BinanceFuturesAccess {
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.placeTrailingStopMarket("BTCUSDT", "SELL", 0.01, 1).catch(err => console.log(err.message))
+    let awa = await bin.placeLimitOrder("BTCUSDT", "SELL", 0.01, 1).catch(err => console.log(err.message))
     console.log(awa)
 }
 
