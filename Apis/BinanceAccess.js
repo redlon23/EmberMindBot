@@ -288,6 +288,8 @@ class BinanceFuturesAccess extends ApiAccess {
         let data = await request(requestOptions);
         return JSON.parse(data);  
     }
+
+    
 }
 
 
