@@ -320,7 +320,7 @@ class BinanceFuturesAccess {
 
 async function testHere() {
     let bin = new BinanceFuturesAccess()
-    let awa = await bin.placeTrailingStopMarket("BTCUSDT", "SELL", 0.01, 1).catch(err => console.log(err.message))
+    let awa = await bin.cancelMultipleOrders("BTCUSDT", "[2051744813,2051746330]").catch(err => console.log(err.message))
     console.log(awa)
 }
 
