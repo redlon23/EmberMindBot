@@ -10,9 +10,9 @@ class BybitAccess extends ApiAccess {
         this.secret = 'O6dVZ8PbDT3KAFNNk5OHMTee2XIWReLfgOKN';
     }
 
-    async getOrderBook(symbol, limit = '') {
-        const endPoint = "/public/linear/recent-trading-records";
-        const params = sortParamsAlphabetically({ symbol, limit });
+    async getOrderBook(symbol) {
+        const endPoint = "/v2/public/orderBook/L2";
+        const params = sortParamsAlphabetically({ symbol });
 
         let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
@@ -166,6 +166,7 @@ class BybitAccess extends ApiAccess {
 
 
 }
+module.exports = BybitAccess;
 
 async function testHere(){
     const by = new BybitAccess();
@@ -178,4 +179,4 @@ async function testHere(){
 
 }
 
-testHere();
+// testHere();

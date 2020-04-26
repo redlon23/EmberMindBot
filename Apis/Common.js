@@ -1,0 +1,60 @@
+const BinanceAccess = require("./BinanceAccess");
+const BybitAccess = require("./BybitAccess");
+
+class Binance{
+    constructor() {
+        this.access = new BinanceAccess();
+    }
+
+    async highestBidLowestAsk(symbol){
+        let data = await this.access.getOrderBook(symbol, 5);
+        let highestBid = data.bids[0][0];
+        let lowestAsk = data.asks[0][0];
+        return {highestBid, lowestAsk}
+    }
+
+    async getSymbolPrice(symbol){
+        let data = await this.access.getSymbolPriceTicker(symbol);
+        return data.price;
+    }
+
+    async getPosition(symbol){
+        let data = await this.access.getPositions();
+        return data.find(position => position.symbol === symbol)
+    }
+}
+
+class Bybit{
+    constructor() {
+        this.access = new BybitAccess();
+    }
+    async highestBidLowestAsk(symbol){
+        let data = await this.access.getOrderBook(symbol);
+        let highestBid = data.result[0];
+        let lowestAsk = data.result[data.result.length/2]
+        return {highestBid, lowestAsk}
+    }
+
+    async getSymbolPrice(symbol){
+        let data = await this.access.getSymbolPriceTicker(symbol);
+        return data.result[0].last_price;
+    }
+
+    async getPosition(symbol){
+        let data = await this.access.getPositions(symbol);
+        return data.result.find(position => position.size !== 0)
+    }
+}
+
+let bin = new Binance();
+
+let by = new Bybit();
+
+async function main(){
+    // let res = await bin.getPosition("ETHUSDT");
+    // console.log(res)
+    let res = await by.getPosition("BTCUSDT");
+    console.log(res)
+}
+
+main()

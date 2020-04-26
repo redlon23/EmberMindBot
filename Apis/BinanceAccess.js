@@ -307,6 +307,7 @@ class BinanceFuturesAccess extends ApiAccess {
     }
 }
 
+module.exports = BinanceFuturesAccess;
 
 async function testHere() {
     let bin = new BinanceFuturesAccess();
@@ -315,4 +316,4 @@ async function testHere() {
 }
 
 
-testHere();
+// testHere();
