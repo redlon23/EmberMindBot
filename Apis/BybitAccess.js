@@ -65,12 +65,57 @@ class BybitAccess extends ApiAccess {
         let data = await request(requestOptions);
         return JSON.parse(data)
     }
+
+    async placeMarketOrder(symbol, side, qty, time_in_force = '', reduce_only = '', close_on_trigger = ''){
+        const endPoint = "/private/linear/order/create";
+        const params = sortParamsAlphabetically({ symbol, side, qty, time_in_force, order_type: "Market", reduce_only, api_key: this.public, close_on_trigger ,timestamp: Date.now() });
+        const sign = this._getSignature(params);
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+    async cancelSingleOrder(symbol, order_id = '', order_link_id=''){
+        const endPoint = "/private/linear/order/cancel";
+        const params = sortParamsAlphabetically({ symbol, order_id, order_link_id, api_key: this.public ,timestamp: Date.now() });
+        const sign = this._getSignature(params);
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+    async cancelAllOrders(symbol){
+        const endPoint = "/private/linear/order/cancel-all";
+        const params = sortParamsAlphabetically({ symbol, api_key: this.public ,timestamp: Date.now() });
+        const sign = this._getSignature(params);
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
 }
 
 async function testHere(){
     const by = new BybitAccess();
-    let data = await by.placeLimitOrder("BTCUSDT", "Buy", 1, 7400, "GoodTillCancel", "false", "false" );
+    // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 1, "7400", "GoodTillCancel", "false");
+    // let data = await by.cancelSingleOrder("BTCUSDT", "361a792e-f728-4b51-8505-cf6db3c62fc4");
+    let data = await by.cancelAllOrders("BTCUSDT");
     console.log(data)
+
 }
 
 testHere();
