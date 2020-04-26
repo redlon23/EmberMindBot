@@ -135,11 +135,42 @@ class BybitAccess extends ApiAccess {
         let data = await request(requestOptions);
         return JSON.parse(data)
     }
+
+    async cancelSingleConditionalOrder(symbol, stop_order_id = '', order_link_id=''){
+        const endPoint = "/private/linear/stop-order/cancel";
+        const params = sortParamsAlphabetically({ symbol, stop_order_id, order_link_id, api_key: this.public ,timestamp: Date.now() });
+        const sign = this._getSignature(params);
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+    async cancelAllConditionalOrders(symbol){
+        const endPoint = "/private/linear/stop-order/cancel-all";
+        const params = sortParamsAlphabetically({ symbol, api_key: this.public ,timestamp: Date.now() });
+        const sign = this._getSignature(params);
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+
 }
 
 async function testHere(){
     const by = new BybitAccess();
-    let data = await by.placeConditionalMarketOrder("BTCUSDT", "Buy", 0.01, 7500, 7500, 7500,"GoodTillCancel", false)
+    // let data = await by.placeConditionalMarketOrder("BTCUSDT", "Buy", 0.01, 7500, 7500, 7500,"GoodTillCancel", false)
+    let data = await by.cancelSingleConditionalOrder("BTCUSDT", "59b372fc-50b0-43f3-9e74-9edac910ba65")
     // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 1, "7400", "GoodTillCancel", "false");
     // let data = await by.cancelSingleOrder("BTCUSDT", "361a792e-f728-4b51-8505-cf6db3c62fc4");
     // let data = await by.cancelAllOrders("BTCUSDT");
