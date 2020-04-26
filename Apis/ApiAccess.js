@@ -9,34 +9,30 @@ const crypto = require("crypto")
  */
 class ApiAccess{
     constructor(){}
-
     _getSignature(requestParams) {
-        return crypto.createHmac('sha256', this.secret).update(requestParams, "utf-8").digest('hex')
+        return crypto.createHmac('sha256', this.secret).update(requestParams, "utf8").digest('hex')
     }
+    // === Check Price =====
 
- // === Check Price =====
+    async getOrderBook(symbol){throw new Error("Abstract method!");}
 
- async getOrderBook(symbol){throw new Error("Abstract method!");}
+    async getSymbolPriceTicker(symbol){throw new Error("Abstract method!");}
 
- async getSymbolPriceTicker(symbol){throw new Error("Abstract method!");}
+    // === Check Position ===
 
- // === Check Position ===
+    async getPositions(){throw new Error("Abstract method!");}
 
- async getPositions(){throw new Error("Abstract method!");}
+    //  ===== Place Order ===
 
- //  ===== Place Order ===
+    async placeLimitOrder(){throw new Error("Abstract method!");}
 
- async placeLimitOrder(){throw new Error("Abstract method!");}
+    async placeMarketOrder(){throw new Error("Abstract method!");}
 
- async placeMarketOrder(){throw new Error("Abstract method!");}
+    // ==== Cancel Order ====
 
- // ==== Cancel Order ====
+    async cancelSingleOrder(){throw new Error("Abstract method!");}
 
- async cancelSingleOrder(){throw new Error("Abstract method!");}
-
- async cancelMultipleOrders(){throw new Error("Abstract method!");}
-
- async cancelAllOpenOrders(){throw new Error("Abstract method!");}
+    async cancelAllOrders(){throw new Error("Abstract method!");}
 
 }
 
