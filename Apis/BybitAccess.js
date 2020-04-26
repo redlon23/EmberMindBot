@@ -107,13 +107,42 @@ class BybitAccess extends ApiAccess {
         let data = await request(requestOptions);
         return JSON.parse(data)
     }
+
+    async placeConditionalLimitOrder(symbol, side, qty, price, base_price, stop_px, trigger_by = '', time_in_force = '', reduce_only = '', close_on_trigger = ''){
+        const endPoint = "/private/linear/stop-order/create";
+        const params = sortParamsAlphabetically({ symbol, side, qty, price, base_price, stop_px, trigger_by, time_in_force, order_type: "Limit", reduce_only, api_key: this.public, close_on_trigger ,timestamp: Date.now() });
+        const sign = this._getSignature(params);
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+    async placeConditionalMarketOrder(symbol, side, qty, base_price, stop_px, trigger_by = '', time_in_force = '', reduce_only = '', close_on_trigger = ''){
+        const endPoint = "/private/linear/stop-order/create";
+        const params = sortParamsAlphabetically({ symbol, side, qty, base_price, stop_px, trigger_by, time_in_force, order_type: "Market", reduce_only, api_key: this.public, close_on_trigger ,timestamp: Date.now() });
+        const sign = this._getSignature(params);
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
 }
 
 async function testHere(){
     const by = new BybitAccess();
+    let data = await by.placeConditionalMarketOrder("BTCUSDT", "Buy", 0.01, 7500, 7500, 7500,"GoodTillCancel", false)
     // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 1, "7400", "GoodTillCancel", "false");
     // let data = await by.cancelSingleOrder("BTCUSDT", "361a792e-f728-4b51-8505-cf6db3c62fc4");
-    let data = await by.cancelAllOrders("BTCUSDT");
+    // let data = await by.cancelAllOrders("BTCUSDT");
     console.log(data)
 
 }
