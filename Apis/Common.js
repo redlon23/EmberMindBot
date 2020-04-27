@@ -29,16 +29,14 @@ class Binance{
         return await this.access.getKlineData("BTCUSDT", "1d", nDaysAgo / 1000 | 0)
     }
 
-    async get1HourKline(){
-        let nHour = 1
-        let nDaysAgo = Math.floor(Date.now() - (1000 * 60 * 60 * nHour));
-        return await this.access.getKlineData("BTCUSDT", "1h", nDaysAgo / 1000 | 0)
+    async get1HourKline(period){
+        let periodBack = Math.floor(Date.now() - (1000 * 60 * 60 * period));
+        return await this.access.getKlineData("BTCUSDT", "1h", periodBack / 1000 | 0)
     }
 
-    async get15MinuteKline(){
-        let nMin = 15
-        let nDaysAgo = Math.floor(Date.now() - (1000 * 60 * 60 * 24 * nMin));
-        return await this.access.getKlineData("BTCUSDT", "15m", nDaysAgo / 1000 | 0)
+    async get15MinuteKline(period){
+        let periodBack = Math.floor(Date.now() - (1000 * 60 * 60 * 24 * period));
+        return await this.access.getKlineData("BTCUSDT", "15m", periodBack / 1000 | 0)
     }
 }
 

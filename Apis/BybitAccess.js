@@ -38,7 +38,7 @@ class BybitAccess extends ApiAccess {
         return JSON.parse(data)
     }
 
-    async getPositions(symbol){
+        async getPositions(symbol){
         const endPoint = "/private/linear/position/list";
         const params = sortParamsAlphabetically({ symbol, api_key: this.public ,timestamp: Date.now() });
         const sign = this._getSignature(params);
@@ -158,6 +158,20 @@ class BybitAccess extends ApiAccess {
         const requestOptions = {
             url,
             method: "POST"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+    async getKlineData(symbol, interval, from, limit=''){
+        const endPoint = "/public/linear/kline";
+        const params = sortParamsAlphabetically({symbol, interval, from, limit});
+
+        const url = `${this.base}${endPoint}?${params}`;
+        const requestOptions = {
+            url,
+            method: "GET"
         };
 
         let data = await request(requestOptions);
