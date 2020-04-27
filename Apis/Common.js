@@ -31,13 +31,41 @@ class Binance{
 
     async get1HourPeriodKline(symbol, period){
         let periodBack = Math.floor(Date.now() - (1000 * 60 * 60 * period));
-        return await this.access.getKlineData(symbol, "1h", periodBack)
+        return await this.access.getKlineData(symbol, "1h", periodBack, period)
     }
 
     async get15MinutePeriodKline(symbol, period){
         let periodBack = Math.floor(Date.now() - (1000 * 60 * 15 * period));
         return await this.access.getKlineData(symbol, "15m", periodBack, period)
     }
+
+    async get200dayMovingAverage(symbol){
+        let total = 0.0;
+        let data = await this.get200DayKline(symbol);
+        for(let i = 0; i < data.length; i++){
+            total += Number.parseFloat(data[i][4]);
+        }
+        return (total / data.length).toFixed(2);
+    }
+
+    calculateRsi(periodData){
+        let upMove = 0.0;
+        let downMove = 0.0;
+        let len = periodData.length - 1
+        for(let i = 0; i < len; i++){
+            let change = periodData[i][4] - periodData[i + 1][4];
+            if (change > 0){
+                upMove += change;
+            }
+            if(change < 0){
+                downMove += Math.abs(change);
+            }
+        }
+        let rsi = 100 - 100 / (1 + (upMove/ len) / (downMove / len))
+        console.log(rsi)
+    }
+
+
 }
 
 class Bybit{
