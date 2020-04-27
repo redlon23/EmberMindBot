@@ -306,7 +306,7 @@ class BinanceFuturesAccess extends ApiAccess {
         return JSON.parse(data);
     }
 
-    async getKlineData(symbol, interval, startTime='', endTime='', limit=''){
+    async getKlineData(symbol, interval, startTime='', limit='', endTime=''){
         const endPoint = "/fapi/v1/klines";
         const params = sortParamsAlphabetically({ symbol, interval, startTime, endTime, limit });
 

@@ -23,20 +23,20 @@ class Binance{
         return data.find(position => position.symbol === symbol)
     }
 
-    async get200DayKline(){
+    async get200DayKline(symbol){
         let nDays = 200
         let nDaysAgo = Math.floor(Date.now() - (1000 * 60 * 60 * 24 * nDays));
-        return await this.access.getKlineData("BTCUSDT", "1d", nDaysAgo / 1000 | 0)
+        return await this.access.getKlineData(symbol, "1d", nDaysAgo / 1000 | 0, 200)
     }
 
-    async get1HourKline(period){
+    async get1HourPeriodKline(symbol, period){
         let periodBack = Math.floor(Date.now() - (1000 * 60 * 60 * period));
-        return await this.access.getKlineData("BTCUSDT", "1h", periodBack / 1000 | 0)
+        return await this.access.getKlineData(symbol, "1h", periodBack / 1000 | 0, period)
     }
 
-    async get15MinuteKline(period){
+    async get15MinutePeriodKline(symbol, period){
         let periodBack = Math.floor(Date.now() - (1000 * 60 * period));
-        return await this.access.getKlineData("BTCUSDT", "15m", periodBack / 1000 | 0)
+        return await this.access.getKlineData(symbol, "15m", periodBack / 1000 | 0, period)
     }
 }
 
@@ -67,12 +67,12 @@ class Bybit{
         return await this.access.getKlineData(symbol,"D", nDaysAgo / 1000 | 0);
     }
 
-    async get1HourKline(symbol, period){
+    async get1HourPeriodKline(symbol, period){
         let periodBack = Math.floor(Date.now() - (1000 * 60 * 60 * period));
         return await this.access.getKlineData(symbol, 60, periodBack / 1000 | 0);
     }
 
-    async get15MinuteKline(symbol, period){
+    async get15MinutePeriodKline(symbol, period){
         let periodBack = Math.floor(Date.now() - (1000 * 60 * period));
         return await this.access.getKlineData(symbol, 15, periodBack / 1000 | 0);
     }
@@ -83,10 +83,10 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    // let res = await bin.getPosition("ETHUSDT");
+    let res = await bin.get1HourKline("BTCUSDT", );
     // console.log(res)
-    let res = await bin.get1HourKline("BTCUSDT", 12);
-    console.log(res)
+    // let res = await by.get1HourKline("BTCUSDT", 12);
+    console.log(res.length)
 }
 
 main()
