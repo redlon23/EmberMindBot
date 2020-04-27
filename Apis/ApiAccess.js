@@ -34,6 +34,10 @@ class ApiAccess{
 
     async cancelAllOrders(){throw new Error("Abstract method!");}
 
+    // === Historic Data ===
+
+    async getKlineData(){throw new Error("Abstract method!");}
+
 }
 
 module.exports = ApiAccess;

@@ -22,6 +22,24 @@ class Binance{
         let data = await this.access.getPositions();
         return data.find(position => position.symbol === symbol)
     }
+
+    async get200DayKline(){
+        let nDays = 200
+        let nDaysAgo = Math.floor(Date.now() - (1000 * 60 * 60 * 24 * nDays));
+        return await this.access.getKlineData("BTCUSDT", "1d", nDaysAgo / 1000 | 0)
+    }
+
+    async get1HourKline(){
+        let nHour = 1
+        let nDaysAgo = Math.floor(Date.now() - (1000 * 60 * 60 * nHour));
+        return await this.access.getKlineData("BTCUSDT", "1h", nDaysAgo / 1000 | 0)
+    }
+
+    async get15MinuteKline(){
+        let nMin = 15
+        let nDaysAgo = Math.floor(Date.now() - (1000 * 60 * 60 * 24 * nMin));
+        return await this.access.getKlineData("BTCUSDT", "15m", nDaysAgo / 1000 | 0)
+    }
 }
 
 class Bybit{
@@ -43,6 +61,12 @@ class Bybit{
     async getPosition(symbol){
         let data = await this.access.getPositions(symbol);
         return data.result.find(position => position.size !== 0)
+    }
+
+    async get200DayKline(){
+        let nDays = 200;
+        let nDaysAgo = Math.floor(Date.now() - (1000 * 60 * 60 * 24 * nDays));
+        return await this.access.getKlineData("BTCUSDT","D", nDaysAgo / 1000 | 0);
     }
 }
 
