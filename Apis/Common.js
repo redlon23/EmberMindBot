@@ -116,12 +116,12 @@ class Bybit{
         return sum/data.result.length;
     }
 
-    calculateRSI(periods) {
+    calculateRSI(periodData) {
         let up = 0;
         let down = 0;
-        let len = periods.length - 1;
+        let len = periodData.length - 1;
         for(let i = 0; i < len; i++) {
-            let change = periods[i].close - periods[i + 1].close;
+            let change = periodData[i].close - periodData[i + 1].close;
             if(change > 0) {
                 up += change;
             } else {
