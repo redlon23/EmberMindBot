@@ -76,6 +76,17 @@ class Bybit{
         let periodBack = Math.floor(Date.now() - (1000 * 60 * period));
         return await this.access.getKlineData(symbol, 15, periodBack / 1000 | 0);
     }
+
+    async get200DayMovingAverage(symbol) {
+        let data = await this.get200DayKline(symbol);
+        let sum = 0;
+
+        for(const obj of data.result) {
+            sum += obj.close;
+        }
+
+        return sum/data.result.length;
+    }
 }
 
 let bin = new Binance();
@@ -83,10 +94,10 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await bin.get1HourKline("BTCUSDT", );
+    let res = await by.get200DayMovingAverage("BTCUSDT");
     // console.log(res)
     // let res = await by.get1HourKline("BTCUSDT", 12);
-    console.log(res.length)
+    console.log(res)
 }
 
 main()
