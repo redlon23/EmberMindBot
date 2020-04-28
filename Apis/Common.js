@@ -39,7 +39,7 @@ class Binance{
         return await this.access.getKlineData(symbol, "15m", periodBack, period)
     }
 
-    async get200dayMovingAverage(symbol){
+    async get200DayMovingAverage(symbol){
         let total = 0.0;
         let data = await this.get200DayKline(symbol);
         for(let i = 0; i < data.length; i++){
@@ -48,12 +48,12 @@ class Binance{
         return (total / data.length).toFixed(2);
     }
 
-    calculateRsi(periodData){
+    calculateSmaRsi(periodData){
         let upMove = 0.0;
         let downMove = 0.0;
-        let len = periodData.length - 1
-        for(let i = 0; i < len; i++){
-            let change = periodData[i][4] - periodData[i + 1][4];
+        let len = periodData.length;
+        for(let i = 1; i < len; i++){
+            let change = periodData[i][4] - periodData[i - 1][4];
             if (change > 0){
                 upMove += change;
             }
@@ -65,6 +65,50 @@ class Binance{
         console.log(rsi)
     }
 
+    calculateSmoothedRsi(periodData=[], period){
+        let averageGain = 0.0;
+        let averageLoss = 0.0;
+        let [prevAverageGain, prevAverageLoss] = this._firstAvgGainLoss(periodData.slice(0, period));
+        for(let i = period; i < periodData.length; i++){
+            let currentGain = 0.0;
+            let currentLoss = 0.0;
+            let change = periodData[i][4] - periodData[i - 1][4];
+            if(change > 0){
+                currentGain = change;
+            } else {
+                currentLoss = Math.abs(change);
+            }
+            averageGain = ((prevAverageGain * (period - 1)) + currentGain) / period ;
+            averageLoss = ((prevAverageLoss * (period - 1)) + currentLoss) / period
+        }
+
+        let rs = averageGain / averageLoss;
+        return 100 - (100 / (1 + rs));
+
+    }
+
+    _firstAvgGainLoss(periodData){
+        let upMove = 0.0;
+        let downMove = 0.0;
+        for(let i = 1; i < periodData.length; i++){
+            let change = periodData[i][4] - periodData[i - 1][4];
+            if (change > 0){
+                upMove += change;
+            }
+            if(change < 0){
+                downMove += Math.abs(change);
+            }
+        }
+        return [upMove/periodData.length, downMove/periodData.length];
+    }
+
+    calculateSma(periodData){
+        let total = 0.0;
+        for(let i =0; i < periodData.length; i++){
+            total += Number.parseFloat(periodData[i][4]);
+        }
+        return Number.parseFloat((total / periodData.length).toFixed(2))
+    }
 
 }
 
@@ -140,9 +184,10 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await by.get200DayMovingAverage("BTCUSDT");
+    let res = await bin.get15MinutePeriodKline("BTCUSDT",  200);
+    bin.calculateSmoothedRsi(res, 14);
     // let rsi = by.calculateRSI(res)
-    console.log(res)
+    // console.log(res)
 }
 
 main()
