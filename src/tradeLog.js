@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const TradeLog = new Schema ({
-    strategyId: { type: Schema.Types.ObjectId, required: true },
+    strategyId: { type: Schema.Types.ObjectId, required: true, ref:'strategies' },
+    userId: { type: Schema.Types.ObjectId, required: true, ref:'users' },
     orderId: { type: String, required: true },
     entryPrice: { type: Number, required: true },
     startDate: { type: Date, required: true },
