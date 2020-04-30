@@ -5,9 +5,10 @@ const {sortParamsAlphabetically} = require("./util");
 class BinanceFuturesAccess extends ApiAccess {
     constructor() {
         super();
-        this.base = "https://testnet.binancefuture.com"
-        this.public = '9e0562c79dbc44344ba26738c70c8ca47bc493ea8f250911cd7b30e9106ef9ab';
-        this.secret = 'cedf05c2d33e3c03344c8220f6aa7aed9538db9d7895da488310a3b8ab609c49';
+        // this.base = "https://testnet.binancefuture.com"
+        this.base = "https://fapi.binance.com"
+        this.public = 'vVURkDWSk6WVeMwkLLPcxl9xCAKf54SD17dZcN0VDR1kPvH2EAiaHwmNUcLwoUWJ';
+        this.secret = 'vdQjJOJwL4pUgs3HG835A24PZZw8Rf3S0Fsa9nLN5W4RznUh34egKjlyPIYOWyc0';
     }
 
     async getAccountInformation() {
@@ -312,6 +313,23 @@ class BinanceFuturesAccess extends ApiAccess {
 
         let url = `${this.base}${endPoint}?${params}`;
         const requestOptions = {
+            url,
+            method: "GET"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+    async getAccountTradeList(symbol, limit=0, startTime='', endTime=''){
+        const endPoint = "/fapi/v1/userTrades";
+
+        const params = sortParamsAlphabetically({symbol, timestamp: Date.now(), limit, startTime, endTime})
+        const signature = this._getSignature(params);
+
+        let url = `${this.base}${endPoint}?${params}&signature=${signature}`;
+        const requestOptions = {
+            headers: {'X-MBX-APIKEY': this.public},
             url,
             method: "GET"
         };
