@@ -78,14 +78,15 @@ class Binance{
             } else {
                 currentLoss = Math.abs(change);
             }
-            console.log(prevAverageGain, prevAverageLoss)
-            prevAverageGain = ((prevAverageGain * (period - 1)) + currentGain) / period;
-            prevAverageLoss = ((prevAverageLoss * (period - 1)) + currentLoss) / period;
+            averageGain = ((prevAverageGain * (period - 1)) + currentGain) / period ;
+            averageLoss = ((prevAverageLoss * (period - 1)) + currentLoss) / period
+
+            prevAverageLoss = averageLoss;
+            prevAverageGain = averageGain;
         }
 
         let rs = averageGain / averageLoss;
         return 100 - (100 / (1 + rs));
-
     }
 
     _firstAvgGainLoss(periodData){
@@ -109,6 +110,19 @@ class Binance{
             total += Number.parseFloat(periodData[i][4]);
         }
         return Number.parseFloat((total / periodData.length).toFixed(2))
+    }
+
+    calculateBollingerBands(periodData =[], period){
+        let total = 0.0;
+        let mid = this.calculateSma(periodData);
+        for(let i = 0; i < periodData.length; i++){
+            let price = Number.parseFloat(periodData[i][4]);
+            total += Math.pow(price - mid, 2);
+        }
+        let std = Math.sqrt(total * (1/period))
+        let upper = mid + (std * 2);
+        let lower = mid - (std * 2);
+        return [mid, upper, lower];
     }
 
 }
