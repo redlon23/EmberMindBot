@@ -238,6 +238,21 @@ class Bybit{
         return {upper: sma + 2*sd, mean: sma, lower: sma - 2*sd};
     }
 
+    async getRealizedPnlDay(){
+        let data = await this.access.getWalletRecords();
+        return data.result;
+    }
+
+    async getRealizedPnlTotal(coin){
+        let data = await this.access.getWalletData(coin);
+        return data.result[coin].cum_realised_pnl;
+    }
+
+    async getUnrealizedPnl(coin){
+        let data = await this.access.getWalletData(coin);
+        return data.result[coin].unrealised_pnl;
+    }
+
 }
 
 let bin = new Binance();
@@ -245,8 +260,8 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await by.get15MinutePeriodKline("BTCUSDT", 20);
-    console.log(by.calculateBollingerBands(res));
+    let res = await by.getRealizedPnlTotal("USDT");
+    console.log(res);
     // let rsi = by.calculateRSI(res)
     // console.log(res)
 }

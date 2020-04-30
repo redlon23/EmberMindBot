@@ -178,6 +178,35 @@ class BybitAccess extends ApiAccess {
         return JSON.parse(data)
     }
 
+    async getWalletData(coin) {
+        const endPoint = '/v2/private/wallet/balance'
+        const params = sortParamsAlphabetically({coin, api_key: this.public, timestamp: Date.now()});
+        const sign = this._getSignature(params);
+
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "GET"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
+    async getWalletRecords() {
+        const endPoint = '/open-api/wallet/fund/records'
+        const params = sortParamsAlphabetically({wallet_fund_type: 'RealisedPNL', api_key: this.public, timestamp: Date.now()});
+        const sign = this._getSignature(params);
+
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "GET"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
 
 }
 module.exports = BybitAccess;
@@ -185,7 +214,7 @@ module.exports = BybitAccess;
 async function testHere(){
     const by = new BybitAccess();
     // let data = await by.placeConditionalMarketOrder("BTCUSDT", "Buy", 0.01, 7500, 7500, 7500,"GoodTillCancel", false)
-    let data = await by.cancelSingleConditionalOrder("BTCUSDT", "59b372fc-50b0-43f3-9e74-9edac910ba65")
+    let data = await by.getWalletData("USDT")
     // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 1, "7400", "GoodTillCancel", "false");
     // let data = await by.cancelSingleOrder("BTCUSDT", "361a792e-f728-4b51-8505-cf6db3c62fc4");
     // let data = await by.cancelAllOrders("BTCUSDT");
