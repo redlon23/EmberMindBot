@@ -134,8 +134,8 @@ class Bybit{
     async highestBidLowestAsk(symbol){
         let data = await this.access.getOrderBook(symbol);
         let highestBid = data.result[0];
-        let lowestAsk = data.result[data.result.length/2]
-        return {highestBid, lowestAsk}
+        let lowestAsk = data.result[data.result.length/2];
+        return {highestBid, lowestAsk};
     }
 
     async getSymbolPrice(symbol){
@@ -145,7 +145,12 @@ class Bybit{
 
     async getPosition(symbol){
         let data = await this.access.getPositions(symbol);
-        return data.result.find(position => position.size !== 0)
+        return data.result.find(position => position.size !== 0);
+    }
+
+    async checkPosition(symbol){
+        let data = await this.getPosition(symbol);
+        return !data ? [0, 0] : [data.size, data.entry_price];
     }
 
     async get200DayKline(symbol){
@@ -237,7 +242,7 @@ class Bybit{
         for(let i =0; i < periodData.length; i++){
             total += Number.parseFloat(periodData[i].close);
         }
-        return total / periodData.length
+        return total / periodData.length;
     }
 
     calculateBollingerBands(periodData){
@@ -268,7 +273,14 @@ class Bybit{
     }
 
     async placeLimitOrder(symbol, side, quantity, price, timeinforce){
+        //TODO: Remove GoodTillCancel hardcode when enums are added
         let data = await this.access.placeLimitOrder(symbol, side, quantity, price, "GoodTillCancel");
+        return data.result.order_id;
+    }
+
+    async placeMarketReduceOrder(symbol, side, quantity, timeinforce){
+        //TODO: Remove GoodTillCancel hardcode when enums are added
+        let data = await this.access.placeLimitOrder(symbol, side, quantity, "GoodTillCancel", true);
         return data.result;
     }
 
@@ -294,7 +306,7 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await by.getDualPnlDay("BTCUSDT");
+    let res = await by.placeLimitOrder("BTCUSDT", "Buy", 0.1, 9000, "GoodTillCancel");
     console.log(res);
     // let rsi = by.calculateRSI(res)
     // console.log(res)

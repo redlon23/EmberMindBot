@@ -65,6 +65,7 @@ class BybitAccess extends ApiAccess {
         let data = await request(requestOptions);
         return JSON.parse(data)
     }
+    
 
     async placeMarketOrder(symbol, side, qty, time_in_force = '', reduce_only = '', close_on_trigger = ''){
         const endPoint = "/private/linear/order/create";
@@ -228,9 +229,10 @@ module.exports = BybitAccess;
 
 async function testHere(){
     const by = new BybitAccess();
-    // let data = await by.getTradeRecords("BTCUSDT", (Date.now() - 1000 * 60 * 60 * 24 * 1) / 1000 | 0)
-    console.log(data.result)
-
+    // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 0.1, 9000, "GoodTillCancel", false, 1);
+    // let data = await by.cancelSingleOrder("BTCUSDT", '', 1)
+    // let data = await by.cancelAllOrders("BTCUSDT")
+    console.log(data)
 }
 
 // testHere();
