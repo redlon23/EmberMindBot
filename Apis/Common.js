@@ -1,7 +1,7 @@
 const BinanceAccess = require("./BinanceAccess");
 const BybitAccess = require("./BybitAccess");
 
-class Binance{
+class Binance {
     constructor() {
         this.access = new BinanceAccess();
     }
@@ -21,6 +21,11 @@ class Binance{
     async getPosition(symbol){
         let data = await this.access.getPositions();
         return data.find(position => position.symbol === symbol)
+    }
+
+    async checkPosition(symbol){
+        let res = await this.getPosition(symbol);
+        return [res.positionAmt, res.entryPrice] ;
     }
 
     async get200DayKline(symbol){
@@ -45,7 +50,8 @@ class Binance{
         for(let i = 0; i < data.length; i++){
             total += Number.parseFloat(data[i][4]);
         }
-        return (total / data.length).toFixed(2);
+        let temp = (total / data.length).toFixed(2);
+        return Number.parseFloat(temp);
     }
 
     calculateSmaRsi(periodData){
@@ -62,7 +68,6 @@ class Binance{
             }
         }
         let rsi = 100 - 100 / (1 + (upMove/ len) / (downMove / len))
-        console.log(rsi)
     }
 
     calculateSmoothedRsi(periodData=[], period){
@@ -86,7 +91,8 @@ class Binance{
         }
 
         let rs = averageGain / averageLoss;
-        return 100 - (100 / (1 + rs));
+        let rsi =  (100 - (100 / (1 + rs))).toFixed(2);
+        return Number.parseFloat(rsi);
     }
 
     _firstAvgGainLoss(periodData){
@@ -125,8 +131,20 @@ class Binance{
         return [mid, upper, lower];
     }
 
-}
+    async placeLimitOrder(symbol, side, quantity, price, timeInForce){
+        try{
+            let { orderId } = await this.access.placeLimitOrder(symbol, side,quantity, price, timeInForce)
+            return orderId
+        } catch (e) {
+            return null;
+        }
+    }
 
+    async placeMarketReduceOrder(symbol, side, quantity){
+        return await this.access.placeMarketOrder(symbol, side, quantity, "true")
+    }
+
+}
 class Bybit{
     constructor() {
         this.access = new BybitAccess();
@@ -196,7 +214,7 @@ class Bybit{
 
         return 100 - 100 / (1 + (up/len)/(down/len));
     }
-    
+
     calculateSmoothedRsi(periodData=[], period){
         let averageGain = 0.0;
         let averageLoss = 0.0;
@@ -300,6 +318,7 @@ class Bybit{
     }
 
 }
+
 
 let bin = new Binance();
 

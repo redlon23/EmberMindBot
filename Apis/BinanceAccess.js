@@ -5,10 +5,10 @@ const {sortParamsAlphabetically} = require("./util");
 class BinanceFuturesAccess extends ApiAccess {
     constructor() {
         super();
-        // this.base = "https://testnet.binancefuture.com"
-        this.base = "https://fapi.binance.com"
-        this.public = 'vVURkDWSk6WVeMwkLLPcxl9xCAKf54SD17dZcN0VDR1kPvH2EAiaHwmNUcLwoUWJ';
-        this.secret = 'vdQjJOJwL4pUgs3HG835A24PZZw8Rf3S0Fsa9nLN5W4RznUh34egKjlyPIYOWyc0';
+        this.base = "https://testnet.binancefuture.com"
+        // this.base = "https://fapi.binance.com"
+        this.public = '9e0562c79dbc44344ba26738c70c8ca47bc493ea8f250911cd7b30e9106ef9ab';
+        this.secret = 'cedf05c2d33e3c03344c8220f6aa7aed9538db9d7895da488310a3b8ab609c49';
     }
 
     async getAccountInformation() {
@@ -187,7 +187,7 @@ class BinanceFuturesAccess extends ApiAccess {
         return JSON.parse(data);
     }
     
-    async placeLimitOrder(symbol, side, quantity, price, timeInForce, positionSide = '', reduceOnly = ''){
+    async placeLimitOrder(symbol, side, quantity, price, timeInForce, reduceOnly = '', positionSide = ''){
         const endPoint = "/fapi/v1/order";
         const params = sortParamsAlphabetically({symbol, side, positionSide, timeInForce, quantity, reduceOnly, price, type: "LIMIT", timestamp: Date.now()})
         const signature = this._getSignature(params);
@@ -343,7 +343,7 @@ module.exports = BinanceFuturesAccess;
 
 async function testHere() {
     let bin = new BinanceFuturesAccess();
-    let awa = await bin.getPositions().catch(err => console.log(err.message))
+    let awa = await bin.placeLimitOrder("BTCUSDT","BUY",0.01, 7600,"GTC",).catch(err => console.log(err.message))
     console.log(awa)
 }
 
