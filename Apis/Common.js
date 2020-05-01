@@ -267,6 +267,26 @@ class Bybit{
         return data.result[coin].unrealised_pnl;
     }
 
+    async placeLimitOrder(symbol, side, quantity, price, timeinforce){
+        let data = await this.access.placeLimitOrder(symbol, side, quantity, price, "GoodTillCancel");
+        return data.result;
+    }
+
+    async getDualPnlDay(symbol) {
+        //1 day back
+        let data = await this.access.getTradeRecords(symbol, (Date.now() - 1000 * 60 * 60 * 24) / 1000 | 0);
+        let pnl = {gain: 0, loss: 0};
+        for(let record of data.result.data) {
+            let val = record.closed_pnl;
+            if (val > 0) {
+                pnl.gain += val;
+            } else {
+                pnl.loss += val;
+            }
+        }
+        return pnl;
+    }
+
 }
 
 let bin = new Binance();
@@ -274,7 +294,7 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await by.getRealizedPnlTotal("USDT");
+    let res = await by.getDualPnlDay("BTCUSDT");
     console.log(res);
     // let rsi = by.calculateRSI(res)
     // console.log(res)

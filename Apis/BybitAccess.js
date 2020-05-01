@@ -208,17 +208,28 @@ class BybitAccess extends ApiAccess {
         return JSON.parse(data)
     }
 
+    async getTradeRecords(symbol, start_time = '', end_time = '') {
+        const endPoint = '/private/linear/trade/closed-pnl/list'
+        const params = sortParamsAlphabetically({symbol, start_time, end_time, api_key: this.public, timestamp: Date.now()});
+        const sign = this._getSignature(params);
+
+        const url = `${this.base}${endPoint}?${params}&sign=${sign}`;
+        const requestOptions = {
+            url,
+            method: "GET"
+        };
+
+        let data = await request(requestOptions);
+        return JSON.parse(data)
+    }
+
 }
 module.exports = BybitAccess;
 
 async function testHere(){
     const by = new BybitAccess();
-    // let data = await by.placeConditionalMarketOrder("BTCUSDT", "Buy", 0.01, 7500, 7500, 7500,"GoodTillCancel", false)
-    let data = await by.getWalletData("USDT")
-    // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 1, "7400", "GoodTillCancel", "false");
-    // let data = await by.cancelSingleOrder("BTCUSDT", "361a792e-f728-4b51-8505-cf6db3c62fc4");
-    // let data = await by.cancelAllOrders("BTCUSDT");
-    console.log(data)
+    // let data = await by.getTradeRecords("BTCUSDT", (Date.now() - 1000 * 60 * 60 * 24 * 1) / 1000 | 0)
+    console.log(data.result)
 
 }
 
