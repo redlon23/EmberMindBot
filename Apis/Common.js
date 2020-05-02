@@ -317,8 +317,17 @@ class Bybit{
         return pnl;
     }
 
+    async cancelSingleOrder(symbol, order_id) {
+        let data = await this.access.cancelSingleOrder(symbol, order_id);
+        return data.result;
+    }
+
 }
 
+module.exports = {
+    Bybit,
+    Binance
+}
 
 let bin = new Binance();
 
