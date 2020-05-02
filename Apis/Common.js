@@ -67,7 +67,7 @@ class Binance {
                 downMove += Math.abs(change);
             }
         }
-        let rsi = 100 - 100 / (1 + (upMove/ len) / (downMove / len))
+        return 100 - 100 / (1 + (upMove/ len) / (downMove / len))
     }
 
     calculateSmoothedRsi(periodData=[], period){
@@ -156,8 +156,8 @@ class Bybit{
     }
     async highestBidLowestAsk(symbol){
         let data = await this.access.getOrderBook(symbol);
-        let highestBid = data.result[0];
-        let lowestAsk = data.result[data.result.length/2];
+        let highestBid = data.result[0].price;
+        let lowestAsk = data.result[data.result.length/2].price;
         return {highestBid, lowestAsk};
     }
 
@@ -198,18 +198,18 @@ class Bybit{
     async get200DayMovingAverage(symbol) {
         let data = await this.get200DayKline(symbol);
         let sum = 0;
-        for(const obj of data.result) {
+        for(const obj of data) {
             sum += obj.close;
         }
-        return sum/data.result.length;
+        return sum/data.length;
     }
 
-    calculateRSI(periodData) {
-        let up = 0;
-        let down = 0;
-        let len = periodData.length - 1;
-        for(let i = 0; i < len; i++) {
-            let change = periodData[i].close - periodData[i + 1].close;
+    calculateSmaRsi(periodData) {
+        let up = 0.0;
+        let down = 0.0;
+        let len = periodData.length;
+        for(let i = 1; i < len; i++) {
+            let change = periodData[i].close - periodData[i - 1].close;
             if(change > 0) {
                 up += change;
             } else {
@@ -276,8 +276,9 @@ class Bybit{
         }
 
         let sd = Math.sqrt(prices.map(x => Math.pow(x-sma, 2)).reduce((a, b) => a +b ) / periodData.length);
-
-        return {upper: sma + 2*sd, mean: sma, lower: sma - 2*sd};
+        let upper = sma + 2*sd;
+        let lower = sma - 2*sd;
+        return [sma, upper, lower];
     }
 
     async getRealizedPnlDay(){
@@ -303,7 +304,8 @@ class Bybit{
 
     async placeMarketReduceOrder(symbol, side, quantity, timeinforce){
         //TODO: Remove GoodTillCancel hardcode when enums are added
-        let data = await this.access.placeLimitOrder(symbol, side, quantity, "GoodTillCancel", true);
+        let data = await this.access.placeMarketOrder(symbol, side, quantity, "GoodTillCancel", true);
+        console.log(data)
         return data.result;
     }
 
@@ -339,13 +341,12 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await by.placeLimitOrder("BTCUSDT", "Buy", 0.1, 9000, "GoodTillCancel");
+    let res = await bin.placeMarketReduceOrder("BTCUSDT", "SELL", 1)
     console.log(res);
-    // let rsi = by.calculateRSI(res)
     // console.log(res)
 }
 
-// main()
+main()
 
 module.exports = {
     Bybit,
