@@ -6,23 +6,27 @@ class MarketMaker{
         this.state = ''
         this.openPosition = false;
         this.settings = {rsiKlinePeriod: "15m", symbol: "BTCUSDT",
-            quantity: 0.01, stopLoss: 30, takeProfit: 20,
+            quantity: 0.01, stopLoss: 30, takeProfit: 5,
             rsiOverBought: 70, rsiOverSold: 35};
         this.ma200 = 0.0;
         this.rsiValue = 0.0;
         this.entryPrice = 0.0;
+        this.orderId = null;
     }
 
     async handleState(){
-        this.ma200 = await this.access.get200DayMovingAverage(this.settings.symbol);
         let currentPrice = await this.access.getSymbolPrice(this.settings.symbol);
         this._decideState(this.ma200, currentPrice);
     }
 
     async handleTrade(){
-        let trade = await this.checkRsi();
-        if(trade){
-            let res = await this.placeInitialOrder();
+        let isTradeReady = await this.checkRsi();
+        if(isTradeReady){
+            if(this.orderId !== null){
+                await this.access.cancelSingleOrder(this.settings.symbol, this.orderId)
+                this.orderId = null;
+            }
+            await this.placeInitialOrder(); // Internally saves orderId.
         }
     }
 
@@ -37,16 +41,19 @@ class MarketMaker{
     }
 
     async handlePosition(){
+        await this.checkRsi()
         let price = await this.access.getSymbolPrice(this.settings.symbol)
         let isReversal = await this.handleReversal(price)
         if(!isReversal){
-           if(!await this.checkTakeProfit(price)){
+            let res = await this.checkTakeProfit(price)
+           if(!res){
                await this.checkStopLoss(price);
            }
         }
     }
 
-    async checkTakeProfit(price){
+    async checkTakeProfit(price){ // Change this to limit order
+        console.log(`Price: ${price},\n Entry price: ${this.entryPrice}`)
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price + this.settings.takeProfit <= this.entryPrice){
                 await this.access.placeMarketReduceOrder(this.settings.symbol, "BUY", this.settings.quantity)
@@ -63,6 +70,7 @@ class MarketMaker{
     }
 
     async checkStopLoss(price){
+        console.log(`Price: ${price},\n Entry price: ${this.entryPrice}`)
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price - this.settings.stopLoss >= this.entryPrice){
                 await this.access.placeMarketReduceOrder(this.settings.symbol, "BUY", this.settings.quantity)
@@ -81,19 +89,23 @@ class MarketMaker{
 
     async handleReversal(price){
         if(this.state === "Bearish"){ // SHORT POSITION
+            console.log(price > this.ma200 && this.rsiValue > this.settings.rsiOverBought)
             if(price > this.ma200 && this.rsiValue > this.settings.rsiOverBought){
                 await this.access.placeMarketReduceOrder(this.settings.symbol, "BUY", this.settings.quantity)
                 this.state = "Bullish";
                 // Reversal
-                await this.placeInitialOrder()
+                console.log("reversal")
+                await this.placeInitialOrder() // // Internally saves orderId.
                 return true;
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
+            console.log(price, this.ma200, this.rsiValue, this.settings.rsiOverBought)
             if(price < this.ma200 && this.rsiValue < this.settings.rsiOverSold){
                 await this.access.placeMarketReduceOrder(this.settings.symbol, "SELL", this.settings.quantity)
                 this.state = "Bearish";
                 // Reversal
-                await this.placeInitialOrder()
+                console.log("reversal")
+                await this.placeInitialOrder() // Internally saves orderId.
                 return true;
             }
         }
@@ -147,14 +159,14 @@ class MarketMaker{
     }
 
     async tradeLoop(){
-        await this.checkPosition();
+        await this.checkPosition(); // Internally updates openPosition.
         if(this.openPosition){
-
+            this.orderId = null;
+            await this.handlePosition(); // Calculates Rsi.
         } else{
-            let ready = await this.checkRsi();
-            if(ready){
-                await this.placeInitialOrder();
-            }
+            await this.handleState()
+            await this.handleTrade() // Internally saves orderId. Calculates Rsi
+        //    Wait for next loop - End of loop.
         }
     }
 
@@ -162,7 +174,10 @@ class MarketMaker{
 
 async function main(){
     let mm = new MarketMaker(Binance, {})
+    mm.ma200 = await mm.access.get200DayMovingAverage(mm.settings.symbol);
     await mm.handleState();
+    await mm.tradeLoop()
+
 }
 
 main()

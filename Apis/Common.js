@@ -144,6 +144,11 @@ class Binance {
         return await this.access.placeMarketOrder(symbol, side, quantity, "true")
     }
 
+    async cancelSingleOrder(symbol, orderId){
+        let { status } = await this.access.cancelSingleOrder(symbol, orderId)
+        return status
+    }
+
 }
 class Bybit{
     constructor() {
@@ -331,4 +336,10 @@ async function main(){
     // console.log(res)
 }
 
-main()
+// main()
+
+module.exports = {
+    Bybit,
+    Binance
+
+}
