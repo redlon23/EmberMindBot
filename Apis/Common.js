@@ -25,7 +25,13 @@ class Binance {
 
     async checkPosition(symbol){
         let res = await this.getPosition(symbol);
-        return [res.positionAmt, res.entryPrice] ;
+        let side = null;
+        if (res.positionAmt < 0){
+            side = "SELL"
+        } else if (res.positionAmt > 0){
+            side = "BUY"
+        }
+        return [res.positionAmt, res.entryPrice, side] ;
     }
 
     async get200DayKline(symbol){
@@ -42,6 +48,21 @@ class Binance {
     async get15MinutePeriodKline(symbol, period){
         let periodBack = Math.floor(Date.now() - (1000 * 60 * 15 * period));
         return await this.access.getKlineData(symbol, "15m", periodBack, period)
+    }
+
+    async get1MinutePeriodKline(symbol, period){
+        let periodBack = Math.floor(Date.now() - (1000 * 60 * period));
+        return await this.access.getKlineData(symbol, "1m", periodBack, period)
+    }
+
+    async getNMinuteMovingAverage(symbol, nMinuteBack){
+        let total = 0.0;
+        let data = await this.get1MinutePeriodKline(symbol, nMinuteBack);
+        for(let i = 0; i < data.length; i++){
+            total += Number.parseFloat(data[i][4]);
+        }
+        let temp = (total / data.length).toFixed(2);
+        return Number.parseFloat(temp);
     }
 
     async get200DayMovingAverage(symbol){
@@ -173,7 +194,7 @@ class Bybit{
 
     async checkPosition(symbol){
         let data = await this.getPosition(symbol);
-        return !data ? [0, 0] : [data.size, data.entry_price];
+        return !data ? [0, 0] : [data.size, data.entry_price, data.side];
     }
 
     async get200DayKline(symbol){
@@ -193,6 +214,21 @@ class Bybit{
         let periodBack = Math.floor(Date.now() - (1000 * 60 * 15 * period));
         let res = await this.access.getKlineData(symbol, 15, periodBack / 1000 | 0);
         return res.result;
+    }
+
+    async get1MinutePeriodKline(symbol, period){
+        let periodBack = Math.floor(Date.now() - (1000 * 60 * period));
+        let res = await this.access.getKlineData(symbol, 1, periodBack / 1000 | 0);
+        return res.result;
+    }
+
+    async getNMinuteMovingAverage(symbol, nMinuteBack){
+        let data = await this.get1MinutePeriodKline(symbol, nMinuteBack);
+        let sum = 0;
+        for(const obj of data) {
+            sum += obj.close;
+        }
+        return sum/data.length;
     }
 
     async get200DayMovingAverage(symbol) {
@@ -305,7 +341,6 @@ class Bybit{
     async placeMarketReduceOrder(symbol, side, quantity, timeinforce){
         //TODO: Remove GoodTillCancel hardcode when enums are added
         let data = await this.access.placeMarketOrder(symbol, side, quantity, "GoodTillCancel", true);
-        console.log(data)
         return data.result;
     }
 
@@ -341,12 +376,12 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await bin.placeMarketReduceOrder("BTCUSDT", "SELL", 1)
+    let res = await by.highestBidLowestAsk("BTCUSDT")
     console.log(res);
     // console.log(res)
 }
 
-main()
+// main()
 
 module.exports = {
     Bybit,
