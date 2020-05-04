@@ -343,7 +343,7 @@ module.exports = BinanceFuturesAccess;
 
 async function testHere() {
     let bin = new BinanceFuturesAccess();
-    let awa = await bin.placeLimitOrder("BTCUSDT","BUY",0.01, 7600,"GTC",).catch(err => console.log(err.message))
+    let awa = await bin.cancelSingleOrder("BTCUSDT","asgadfgadfhadhsdf").catch(err => console.log(err.message))
     console.log(awa)
 }
 
