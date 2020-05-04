@@ -184,7 +184,7 @@ class Bybit{
 
     async getSymbolPrice(symbol){
         let data = await this.access.getSymbolPriceTicker(symbol);
-        return data.result[0].last_price;
+        return parseFloat(data.result[0].last_price);
     }
 
     async getPosition(symbol){
@@ -194,7 +194,7 @@ class Bybit{
 
     async checkPosition(symbol){
         let data = await this.getPosition(symbol);
-        return !data ? [0, 0] : [data.size, data.entry_price, data.side];
+        return !data ? [0, 0, 0] : [data.size, data.entry_price, data.side];
     }
 
     async get200DayKline(symbol){
@@ -361,7 +361,7 @@ class Bybit{
 
     async cancelSingleOrder(symbol, order_id) {
         let data = await this.access.cancelSingleOrder(symbol, order_id);
-        return data.result;
+        return data;
     }
 
 }
@@ -376,12 +376,12 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await by.highestBidLowestAsk("BTCUSDT")
-    console.log(res);
+    let res = await by.getSymbolPrice("BTCUSDT")
+    console.log(typeof(res));
     // console.log(res)
 }
 
-// main()
+main()
 
 module.exports = {
     Bybit,
