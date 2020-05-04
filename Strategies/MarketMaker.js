@@ -67,19 +67,20 @@ class MarketMaker{
         }
     }
 
-    async checkTakeProfit(price){ // Change this to limit order
+    async checkTakeProfit(price){ // Todo: Change this to limit order
         if(this.state === "Bearish"){ // SHORT POSITION
+            console.log(typeof price, typeof this.settings.takeProfit, typeof this.entryPrice);
             if(price + this.settings.takeProfit <= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.settings.quantity)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.positionAmount)
                 this.openPosition = false;
-                console.log(`Take profit hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
+                console.log(`Take profit hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
                 return true;
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price - this.settings.takeProfit >= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.settings.quantity)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.positionAmount)
                 this.openPosition = false;
-                console.log(`Take profit hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
+                console.log(`Take profit hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
                 return true;
             }
         }
@@ -88,14 +89,14 @@ class MarketMaker{
     async checkStopLoss(price){
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price >= this.entryPrice + this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.settings.quantity)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.positionAmount)
                 this.openPosition = false;
                 console.log(`Stop loss hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
                 return true;
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price <= this.entryPrice - this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.settings.quantity)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.positionAmount)
                 this.openPosition = false;
                 console.log(`Stop loss hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
                 return true;
@@ -105,21 +106,24 @@ class MarketMaker{
 
 
     async handleReversal(price){
+
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price > this.ma200 && this.rsiValue > this.settings.rsiOverBought){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "BUY", this.settings.quantity)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.positionAmount)
                 this.state = "Bullish";
+                this.openPosition = false;
                 // Reversal
-                console.log("reversal")
+                console.log("Reversal event in place for short position")
                 await this.placeInitialOrder() // Internally saves initOrderId.
                 return true;
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price < this.ma200 && this.rsiValue < this.settings.rsiOverSold){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.settings.quantity)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.positionAmount)
                 this.state = "Bearish";
+                this.openPosition = false;
                 // Reversal
-                console.log("reversal")
+                console.log("Reversal event in place for long position")
                 await this.placeInitialOrder() // Internally saves initOrderId.
                 return true;
             }
@@ -210,12 +214,19 @@ class MarketMaker{
         }
     }
 
+    /**
+     * If you ever manually close or open a position while bot is active
+     * there will be an additional active order that needs to be canceled.
+     * Emir: If you want to manually change something, stop the bot then do it, most bots do advise that.
+     * @returns {Promise<void>}
+     */
     async tradeLoop(){
         await this.checkPosition(); // Internally updates openPosition. Sets entryPrice & Contract size.
         if(this.openPosition){
             this.initOrderId = null;
-            await this.handleContinuesMarketMaking();
-            await this.handlePosition(); // Calculates Rsi.
+            await this.handlePosition(); // Calculates Rsi. Will change initOrderId in case of reversal event.
+            if(this.openPosition)
+                await this.handleContinuesMarketMaking(); // Handles mmOrderID
         } else{
             await this.handleState()
             await this.handleTrade() // Internally saves initOrderId. Calculates Rsi
@@ -230,7 +241,7 @@ async function main(){
     let mm = new MarketMaker(Bybit, {})
     setInterval(async()=>{
         await mm.tradeLoop()
-    }, 10000)
+    }, 5000)
 }
 
 main()

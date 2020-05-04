@@ -15,7 +15,7 @@ class Binance {
 
     async getSymbolPrice(symbol){
         let data = await this.access.getSymbolPriceTicker(symbol);
-        return data.price;
+        return parseFloat(data.price);
     }
 
     async getPosition(symbol){
