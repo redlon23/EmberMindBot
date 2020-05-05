@@ -171,11 +171,20 @@ class Binance {
     }
 
 }
+
+const ENUMBYBIT = Object.freeze({
+    LONG = 'Sell',
+    SHORT = 'Buy',
+    GOODTILLCANCEL = 'GoodTillCancel'
+})
+
 class Bybit{
     constructor() {
         this.access = new BybitAccess();
+        this.enum = ENUMBYBIT;
     }
-    async highestBidLowestAsk(symbol){
+
+    async (symbol){
         let data = await this.access.getOrderBook(symbol);
         let highestBid = data.result[0].price;
         let lowestAsk = data.result[data.result.length/2].price;
