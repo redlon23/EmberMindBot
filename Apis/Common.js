@@ -181,8 +181,8 @@ class Binance {
 }
 
 const ENUMBYBIT = Object.freeze({
-    LONG: 'Sell',
-    SHORT: 'Buy',
+    SHORT: 'Sell',
+    LONG: 'Buy',
     GOODTILLCANCEL: 'GoodTillCancel'
 })
 
