@@ -71,14 +71,14 @@ class MarketMaker{
         if(this.state === "Bearish"){ // SHORT POSITION
             console.log(typeof price, typeof this.settings.takeProfit, typeof this.entryPrice);
             if(price + this.settings.takeProfit <= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
                 this.openPosition = false;
                 console.log(`Take profit hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
                 return true;
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price - this.settings.takeProfit >= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
                 this.openPosition = false;
                 console.log(`Take profit hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
                 return true;
@@ -89,14 +89,14 @@ class MarketMaker{
     async checkStopLoss(price){
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price >= this.entryPrice + this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
                 this.openPosition = false;
                 console.log(`Stop loss hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
                 return true;
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price <= this.entryPrice - this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
                 this.openPosition = false;
                 console.log(`Stop loss hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
                 return true;
@@ -109,7 +109,7 @@ class MarketMaker{
 
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price > this.ma200 && this.rsiValue > this.settings.rsiOverBought){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Buy", this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
                 this.state = "Bullish";
                 this.openPosition = false;
                 // Reversal
@@ -119,7 +119,7 @@ class MarketMaker{
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price < this.ma200 && this.rsiValue < this.settings.rsiOverSold){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, "Sell", this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
                 this.state = "Bearish";
                 this.openPosition = false;
                 // Reversal
@@ -134,12 +134,12 @@ class MarketMaker{
     async placeInitialOrder(){ // Must stay the same
         let {highestBid, lowestAsk} = await this.access.highestBidLowestAsk(this.settings.symbol);
         if(this.state === "Bearish"){
-            this.initOrderId = await this.access.placeLimitOrder(this.settings.symbol, "Sell",
-                this.settings.quantity, lowestAsk) // For binance GTC
+            this.initOrderId = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.SHORT,
+                this.settings.quantity, lowestAsk)
 
         } else if (this.state === "Bullish"){
-            this.initOrderId = await this.access.placeLimitOrder(this.settings.symbol, "Buy",
-                this.settings.quantity, highestBid) // For binance GTC
+            this.initOrderId = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.LONG,
+                this.settings.quantity, highestBid)
         }
     }
 
@@ -205,12 +205,12 @@ class MarketMaker{
     async placeMMOrders(){
         let {highestBid, lowestAsk} = await this.access.highestBidLowestAsk(this.settings.symbol);
         if(this.state === "Bearish"){
-            this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, "Sell",
-                this.settings.quantity, lowestAsk) // For binance GTC
+            this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.SHORT,
+                this.settings.quantity, lowestAsk)
 
         } else if (this.state === "Bullish"){
-            this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, "Buy",
-                this.settings.quantity, highestBid) // For binance GTC
+            this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.LONG,
+                this.settings.quantity, highestBid)
         }
     }
 
