@@ -1,9 +1,17 @@
 const BinanceAccess = require("./BinanceAccess");
 const BybitAccess = require("./BybitAccess");
 
+const ENUMBINANCE = {
+    LONG: "BUY",
+    SHORT: "SELL",
+    GOODTILLCANCEL: "GTC"
+}
+
+
 class Binance {
     constructor() {
         this.access = new BinanceAccess();
+        this.ENUM = ENUMBINANCE
     }
 
     async highestBidLowestAsk(symbol){
@@ -184,7 +192,7 @@ class Bybit{
         this.enum = ENUMBYBIT;
     }
 
-    async (symbol){
+    async highestBidLowestAsk(symbol){
         let data = await this.access.getOrderBook(symbol);
         let highestBid = data.result[0].price;
         let lowestAsk = data.result[data.result.length/2].price;
