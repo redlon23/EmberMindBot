@@ -14,14 +14,41 @@ class MarketMaker{
         this.initOrderId = null;
         this.mmOrderID = null;
         this.positionAmount = 0.0;
+        this.inProfit = false // Check where its changed.
     }
 
+    /**
+     * Decides state by checking moving average gains price.
+     * @returns {Promise<void>}
+     */
     async handleState(){
         this.ma200 = await this.access.getNMinuteMovingAverage(this.settings.symbol, 200);
         let currentPrice = await this.access.getSymbolPrice(this.settings.symbol);
         this._decideState(this.ma200, currentPrice);
     }
 
+    _decideState(ma200, currentPrice){
+        if(ma200 > currentPrice){
+            this.state = "Bearish"
+        } else {
+            this.state = "Bullish"
+        }
+        console.log(
+            `
+        =====Deciding State =====\n
+             Moving Average: ${ma200}\n
+             Current Price: ${currentPrice}\n
+             Current State: ${this.state}
+        =========================
+        `
+        )
+    }
+
+    /**
+     * Handles placing initial order for trade.
+     * Also responsible for canceling initOrderId
+     * @returns {Promise<void>}
+     */
     async handleTrade(){
         let isTradeReady = await this.checkRsi();
         if(isTradeReady){
@@ -36,27 +63,17 @@ class MarketMaker{
         }
     }
 
-    async checkPosition(){
-        let [positionAmount, positionEntryPrice, side] = await this.access.checkPosition(this.settings.symbol);
-        if(positionAmount > this.positionAmount){
-            this.mmOrderID = null;
-            this.positionAmount = positionAmount
-            this.openPosition = true
-            this.entryPrice = positionEntryPrice;
-            if(side.toLowerCase() === "buy"){
-                this.state = "Bullish";
-            }else if(side.toLowerCase() === "sell"){
-                this.state = "Bearish";
-            }
-            console.log(`Open Position with entry price: ${positionEntryPrice}, side: ${side}`);
-            return;
-        }
-        console.log("There is no open position || No Position Change")
-    }
-
+    /**
+     * Handles position by comparing price with entryPrice to
+     * see if there is an reversal & take profit & stop loss.
+     * @returns {Promise<void>}
+     */
     async handlePosition(){
         await this.checkRsi()
         let price = await this.access.getSymbolPrice(this.settings.symbol)
+        // Check if Position is profit for disabling continues MarketMaking.
+        this.inProfit = (this.state === "Bullish" && price > this.entryPrice)
+            || (this.state === "Bearish" && price < this.entryPrice);
         let isReversal = await this.handleReversal(price) // Internally places reversal orders.
         if(!isReversal){
             console.log("No Reversal event, checking tp and sl...")
@@ -67,46 +84,15 @@ class MarketMaker{
         }
     }
 
-    async checkTakeProfit(price){ // Todo: Change this to limit order
-        if(this.state === "Bearish"){ // SHORT POSITION
-            console.log(typeof price, typeof this.settings.takeProfit, typeof this.entryPrice);
-            if(price + this.settings.takeProfit <= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
-                this.openPosition = false;
-                console.log(`Take profit hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
-                return true;
-            }
-        } else if (this.state === "Bullish"){ // LONG POSITION
-            if(price - this.settings.takeProfit >= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
-                this.openPosition = false;
-                console.log(`Take profit hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
-                return true;
-            }
-        }
-    }
-
-    async checkStopLoss(price){
-        if(this.state === "Bearish"){ // SHORT POSITION
-            if(price >= this.entryPrice + this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
-                this.openPosition = false;
-                console.log(`Stop loss hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
-                return true;
-            }
-        } else if (this.state === "Bullish"){ // LONG POSITION
-            if(price <= this.entryPrice - this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
-                this.openPosition = false;
-                console.log(`Stop loss hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
-                return true;
-            }
-        }
-    }
-
-
+    /**
+     * Depending on state, compares price with moving average and
+     * current rsi with user input of rsiOverBought & rsiOverSold
+     * Closes the position with market reduce order.
+     * Then tries to open another position with placeInitialOrder.
+     * @param price
+     * @returns {Promise<boolean>}
+     */
     async handleReversal(price){
-
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price > this.ma200 && this.rsiValue > this.settings.rsiOverBought){
                 await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
@@ -129,6 +115,56 @@ class MarketMaker{
             }
         }
         return false
+    }
+
+    /**
+     * Depending on state, compares price against user input of takeProfit.
+     * Tries to closes the position with limit order.
+     * Changes openPosition to false if conditions are met.
+     * @param price Current Price.
+     * @returns  boolean Position closed or not.
+     */
+    async checkTakeProfit(price){ // Todo: Change this to limit order
+        if(this.state === "Bearish"){ // SHORT POSITION
+            if(price + this.settings.takeProfit <= this.entryPrice){
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
+                this.openPosition = false;
+                console.log(`Take profit hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
+                return true;
+            }
+        } else if (this.state === "Bullish"){ // LONG POSITION
+            if(price - this.settings.takeProfit >= this.entryPrice){
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
+                this.openPosition = false;
+                console.log(`Take profit hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
+                return true;
+            }
+        }
+    }
+
+    /**
+     * Depending on state, compares price against user input of stopLoss
+     * Closes the position with market reduce order.
+     * Changes openPosition to false if conditions are met
+     * @param price Current Price.
+     * @returns boolean Position closed or not.
+     */
+    async checkStopLoss(price){
+        if(this.state === "Bearish"){ // SHORT POSITION
+            if(price >= this.entryPrice + this.settings.stopLoss){
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
+                this.openPosition = false;
+                console.log(`Stop loss hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
+                return true;
+            }
+        } else if (this.state === "Bullish"){ // LONG POSITION
+            if(price <= this.entryPrice - this.settings.stopLoss){
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
+                this.openPosition = false;
+                console.log(`Stop loss hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
+                return true;
+            }
+        }
     }
 
     async placeInitialOrder(){ // Must stay the same
@@ -176,30 +212,15 @@ class MarketMaker{
         return false;
     }
 
-
-    _decideState(ma200, currentPrice){
-        if(ma200 > currentPrice){
-            this.state = "Bearish"
-        } else {
-            this.state = "Bullish"
-        }
-        console.log(
-        `
-        =====Deciding State =====\n
-             Moving Average: ${ma200}\n
-             Current Price: ${currentPrice}\n
-             Current State: ${this.state}
-        =========================
-        `
-        )
-    }
-
     async handleContinuesMarketMaking(){
         if(this.mmOrderID !== null){
+            console.log("Cancel older MarketMaking order...")
             await this.access.cancelSingleOrder(this.settings.symbol, this.mmOrderID)
             this.mmOrderID = null;
         }
-        await this.placeMMOrders(); // Internally saves mmOrderID.
+        // Stop MarketMaking when in profit.
+        if(!this.inProfit)
+            await this.placeMMOrders(); // Internally saves mmOrderID.
     }
 
     async placeMMOrders(){
@@ -207,10 +228,11 @@ class MarketMaker{
         if(this.state === "Bearish"){
             this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.SHORT,
                 this.settings.quantity, lowestAsk)
-
+            console.log(`New MM order with id: ${this.mmOrderID}`)
         } else if (this.state === "Bullish"){
             this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.LONG,
                 this.settings.quantity, highestBid)
+            console.log(`New MM order with id: ${this.mmOrderID}`)
         }
     }
 
@@ -225,8 +247,12 @@ class MarketMaker{
         if(this.openPosition){
             this.initOrderId = null;
             await this.handlePosition(); // Calculates Rsi. Will change initOrderId in case of reversal event.
+            console.log(`Position still open for Continues MM: ${this.openPosition}`)
             if(this.openPosition)
                 await this.handleContinuesMarketMaking(); // Handles mmOrderID
+            else if(this.mmOrderID !== null){
+                await this.access.cancelSingleOrder(this.settings.symbol, this.mmOrderID)
+            }
         } else{
             await this.handleState()
             await this.handleTrade() // Internally saves initOrderId. Calculates Rsi
@@ -235,13 +261,41 @@ class MarketMaker{
         console.log("Waiting for the next loop...\n\n")
     }
 
+    /**
+     * Tries to find an open position and changes the openPosition.
+     * If position amount is not 0, it populates position details.
+     * @returns {Promise<void>}
+     */
+    async checkPosition(){
+        let [positionAmount, positionEntryPrice, side] = await this.access.checkPosition(this.settings.symbol);
+        if(positionAmount > this.positionAmount){
+            this.mmOrderID = null;
+            this.positionAmount = positionAmount
+            this.openPosition = true
+            this.entryPrice = positionEntryPrice;
+            if(side === this.access.ENUM.LONG){
+                this.state = "Bullish";
+            }else if(side === this.access.ENUM.SHORT){
+                this.state = "Bearish";
+            }
+            console.log(`Open Position with entry price: ${positionEntryPrice}, side: ${side}`);
+            return;
+        } else if(positionAmount === 0){
+            this.openPosition = false;
+            this.entryPrice = 0;
+            this.positionAmount = 0;
+        }
+        console.log("There is no open position || No Position Change")
+    }
+
 }
 
 async function main(){
     let mm = new MarketMaker(Bybit, {})
+    await mm.tradeLoop()
     setInterval(async()=>{
         await mm.tradeLoop()
-    }, 5000)
+    }, 60000)
 }
 
 main()

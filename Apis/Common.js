@@ -181,15 +181,15 @@ class Binance {
 }
 
 const ENUMBYBIT = Object.freeze({
-    LONG: 'Sell',
-    SHORT: 'Buy',
+    LONG: 'Buy',
+    SHORT: 'Sell',
     GOODTILLCANCEL: 'GoodTillCancel'
 })
 
 class Bybit{
     constructor() {
         this.access = new BybitAccess();
-        this.enum = ENUMBYBIT;
+        this.ENUM = ENUMBYBIT;
     }
 
     async highestBidLowestAsk(symbol){
@@ -398,7 +398,7 @@ async function main(){
     // console.log(res)
 }
 
-main()
+// main()
 
 module.exports = {
     Bybit,
