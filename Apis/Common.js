@@ -162,7 +162,16 @@ class Binance {
 
     async placeLimitOrder(symbol, side, quantity, price, timeInForce){
         try{
-            let { orderId } = await this.access.placeLimitOrder(symbol, side,quantity, price, timeInForce)
+            let { orderId } = await this.access.placeLimitOrder(symbol, side, quantity, price, timeInForce)
+            return orderId
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async placeLimitReduceOrder(symbol, side, quantity, price, timeInForce){
+        try{
+            let { orderId } = await this.access.placeLimitOrder(symbol, side, quantity, price, timeInForce,"true")
             return orderId
         } catch (e) {
             return null;
@@ -351,6 +360,12 @@ class Bybit{
 
     async placeLimitOrder(symbol, side, quantity, price, timeinforce){
         let data = await this.access.placeLimitOrder(symbol, side, quantity, price, timeinforce);
+        console.log(data)
+        return data.result.order_id;
+    }
+
+    async placeLimitReduceOrder(symbol, side, quantity, price, timeinforce){
+        let data = await this.access.placeLimitOrder(symbol, side, quantity, price, timeinforce, true);
         return data.result.order_id;
     }
 
@@ -391,9 +406,12 @@ let bin = new Binance();
 let by = new Bybit();
 
 async function main(){
-    let res = await by.getSymbolPrice("BTCUSDT")
-    console.log(typeof(res));
+    let res = await bin.checkPosition("BTCUSDT")
+    console.log(res);
     // console.log(res)
+    setInterval(async()=>{
+        await mm.tradeLoop()
+    }, 60000)
 }
 
 // main()

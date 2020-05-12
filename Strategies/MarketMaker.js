@@ -6,7 +6,7 @@ class MarketMaker{
         this.state = ''
         this.openPosition = false;
         this.settings = {rsiKlinePeriod: "1m", symbol: "BTCUSDT",
-            quantity: 0.01, stopLoss: 100, takeProfit: 200,
+            quantity: 0.01, stopLoss: 100, takeProfit: 10,
             rsiOverBought: 51, rsiOverSold: 49};
         this.ma200 = 0.0;
         this.rsiValue = 0.0;
@@ -15,6 +15,7 @@ class MarketMaker{
         this.mmOrderID = null;
         this.positionAmount = 0.0;
         this.inProfit = false // Check where its changed.
+        this.takeProfitId = null;
     }
 
     /**
@@ -127,17 +128,15 @@ class MarketMaker{
     async checkTakeProfit(price){ // Todo: Change this to limit order
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price + this.settings.takeProfit <= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
-                this.openPosition = false;
-                console.log(`Take profit hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
-                return true;
+                return await this.takeProfitLoop()
+                // this.openPosition = false;
+                // console.log(`Take profit hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price - this.settings.takeProfit >= this.entryPrice){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
-                this.openPosition = false;
-                console.log(`Take profit hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
-                return true;
+                return await this.takeProfitLoop()
+                // this.openPosition = false;
+                // console.log(`Take profit hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}\nPosition Size: ${this.positionAmount}`)
             }
         }
     }
@@ -171,11 +170,11 @@ class MarketMaker{
         let {highestBid, lowestAsk} = await this.access.highestBidLowestAsk(this.settings.symbol);
         if(this.state === "Bearish"){
             this.initOrderId = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.SHORT,
-                this.settings.quantity, lowestAsk)
+                this.settings.quantity, lowestAsk, this.access.ENUM.GOODTILLCANCEL)
 
         } else if (this.state === "Bullish"){
             this.initOrderId = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.LONG,
-                this.settings.quantity, highestBid)
+                this.settings.quantity, highestBid, this.access.ENUM.GOODTILLCANCEL)
         }
     }
 
@@ -227,11 +226,11 @@ class MarketMaker{
         let {highestBid, lowestAsk} = await this.access.highestBidLowestAsk(this.settings.symbol);
         if(this.state === "Bearish"){
             this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.SHORT,
-                this.settings.quantity, lowestAsk)
+                this.settings.quantity, lowestAsk, this.access.ENUM.GOODTILLCANCEL)
             console.log(`New MM order with id: ${this.mmOrderID}`)
         } else if (this.state === "Bullish"){
             this.mmOrderID = await this.access.placeLimitOrder(this.settings.symbol, this.access.ENUM.LONG,
-                this.settings.quantity, highestBid)
+                this.settings.quantity, highestBid, this.access.ENUM.GOODTILLCANCEL)
             console.log(`New MM order with id: ${this.mmOrderID}`)
         }
     }
@@ -286,6 +285,56 @@ class MarketMaker{
             this.positionAmount = 0;
         }
         console.log("There is no open position || No Position Change")
+    }
+
+    async sleep(ms){
+        await new Promise(r => setTimeout(r, ms));
+    }
+
+    async takeProfitLoop() {
+        if(this.mmOrderID)
+            await this.access.cancelSingleOrder(this.settings.symbol, this.mmOrderID)
+        while(this.openPosition){
+            let price = await this.access.getSymbolPrice(this.settings.symbol);
+            if(this.state === "Bearish"){ // SHORT POSITION
+                if(price + this.settings.takeProfit <= this.entryPrice){
+                    if(this.takeProfitId)
+                        await this.access.cancelSingleOrder(this.settings.symbol, this.takeProfitId)
+                    this.takeProfitId = await this.access.placeLimitReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount, price + 1, this.access.ENUM.GOODTILLCANCEL)
+                    console.log(`Take profit limit order placed for short position`)
+                } else{
+                    console.log(`No longer in profit... Going back to trade loop`)
+                    if(this.takeProfitId){
+                        await this.access.cancelSingleOrder(this.settings.symbol, this.takeProfitId)
+                        this.takeProfitId = null;
+                    }
+                    return false;
+                }
+            } else if (this.state === "Bullish"){ // LONG POSITION
+                if(price - this.settings.takeProfit >= this.entryPrice){
+                    if(this.takeProfitId)
+                        await this.access.cancelSingleOrder(this.settings.symbol, this.takeProfitId)
+                    this.takeProfitId = await this.access.placeLimitReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount, price - 1, this.access.ENUM.GOODTILLCANCEL)
+                    console.log(`Take profit limit order placed for long position`)
+                } else {
+                    console.log(`No longer in profit... Going back to trade loop`)
+                    if(this.takeProfitId){
+                        await this.access.cancelSingleOrder(this.settings.symbol, this.takeProfitId)
+                        this.takeProfitId = null;
+                    }
+                    return false;
+                }
+            }
+            console.log("Sleeping....")
+            await this.sleep(15000)
+            console.log("Waking up...")
+            let pos = await this.access.checkPosition(this.settings.symbol)
+            if (pos[0] === 0)
+                this.openPosition = false
+        }
+        this.takeProfitId = null;
+        console.log("Out of take profit loop")
+        return true;
     }
 
 }
