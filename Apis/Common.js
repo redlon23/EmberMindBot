@@ -350,14 +350,12 @@ class Bybit{
     }
 
     async placeLimitOrder(symbol, side, quantity, price, timeinforce){
-        //TODO: Remove GoodTillCancel hardcode when enums are added
-        let data = await this.access.placeLimitOrder(symbol, side, quantity, price, "GoodTillCancel");
+        let data = await this.access.placeLimitOrder(symbol, side, quantity, price, timeinforce);
         return data.result.order_id;
     }
 
     async placeMarketReduceOrder(symbol, side, quantity, timeinforce){
-        //TODO: Remove GoodTillCancel hardcode when enums are added
-        let data = await this.access.placeMarketOrder(symbol, side, quantity, "GoodTillCancel", true);
+        let data = await this.access.placeMarketOrder(symbol, side, quantity, timeinforce, true);
         return data.result;
     }
 
