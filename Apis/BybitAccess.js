@@ -6,8 +6,8 @@ class BybitAccess extends ApiAccess {
     constructor() {
         super();
         this.base = "https://api-testnet.bybit.com";
-        this.public = 'kkbceTwJmL51V3Gdg2';
-        this.secret = 'O6dVZ8PbDT3KAFNNk5OHMTee2XIWReLfgOKN';
+        this.public = 'ND9TyDMuGRE8ltbzfW';
+        this.secret = 'IjiDHU7TZMNNunq86iB5P01eSzl4aSuUobXC';
     }
 
     async getOrderBook(symbol) {
@@ -230,7 +230,7 @@ module.exports = BybitAccess;
 async function testHere(){
     const by = new BybitAccess();
     // let data = await by.cancelSingleOrder("BTCUSDT", "24234234")
-    let data = await by.getTradeRecords("BTCUSDT");
+    let data = await by.getWalletData("USDT");
     // let data = await by.getTradeRecords("BTCUSDT", (Date.now() - 1000 * 60 * 60 * 24) / 1000 | 0)
     // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 0.1, 9000, "GoodTillCancel", false, 1);
     // let data = await by.cancelSingleOrder("BTCUSDT", '', 1)
@@ -238,7 +238,7 @@ async function testHere(){
     // console.log(data.result.data);
     // console.log(data.result.data.length);
 
-    console.log(data.result.data[data.result.data.length -1])
+    console.log(data)
 }
 
 // testHere();

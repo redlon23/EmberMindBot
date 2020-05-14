@@ -6,7 +6,7 @@ class MarketMaker{
         this.state = ''
         this.openPosition = false;
         this.settings = {rsiKlinePeriod: "1m", symbol: "BTCUSDT",
-            quantity: 0.01, stopLoss: 100, takeProfit: 10,
+            quantity: 0.01, stopLoss: 5, takeProfit: 5,
             rsiOverBought: 51, rsiOverSold: 49};
         this.ma200 = 0.0;
         this.rsiValue = 0.0;
