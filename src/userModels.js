@@ -8,10 +8,10 @@ exports.getAllUsers = async () => {
 		var result = await User.find({ exchange: { $ne: 'None' }, publicAPI: { $exists: true }, secretAPI: { $exists: true } });
 		result.forEach(user => {
 			//console.log(user)
-			if (user.publicAPI != undefined && user.publicAPI != null) {
+			if (user.publicAPI !== undefined && user.publicAPI !== null) {
 				user.publicAPI = decrypt(user.publicAPI);
 			}
-			if (user.secretAPI != undefined && user.secretAPI != null) {
+			if (user.secretAPI !== undefined && user.secretAPI !== null) {
 				user.secretAPI = decrypt(user.secretAPI);
 			}
 			//console.log(user);

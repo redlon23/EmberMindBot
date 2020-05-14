@@ -5,9 +5,7 @@ class MarketMaker{
         this.access = new ApiAccess(pblic, secret);
         this.state = ''
         this.openPosition = false;
-        this.settings = {rsiKlinePeriod: "1m", symbol: "BTCUSDT",
-            quantity: 0.01, stopLoss: 100, takeProfit: 100,
-            rsiOverBought: 51, rsiOverSold: 49};
+        this.settings = {...settings, rsiKlinePeriod: "1m", symbol: "BTCUSDT"};
         this.ma200 = 0.0;
         this.rsiValue = 0.0;
         this.entryPrice = 0.0;
@@ -347,9 +345,10 @@ class MarketMaker{
 }
 
 async function main(){
-    // let pblic = process.argv[2], secret = process.argv[3];
-    let pblic = 'kkbceTwJmL51V3Gdg2', secret = "O6dVZ8PbDT3KAFNNk5OHMTee2XIWReLfgOKN";
-    let mm = new MarketMaker(Bybit, {}, pblic, secret)
+    let pblic = process.argv[2], secret = process.argv[3], settings = process.argv[4];
+    // Parse settings to have correct types.
+    settings = JSON.parse(settings)
+    let mm = new MarketMaker(Bybit, settings, pblic, secret)
     await mm.tradeLoop()
     setInterval(async()=>{
         await mm.tradeLoop()
