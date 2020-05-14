@@ -5,7 +5,7 @@ const scrypt = util.promisify(crypto.scrypt)
 
 exports.getAllUsers = async () => {
 	try {
-		var result = await User.find({ exchange: { $ne: 'None' } });
+		var result = await User.find({ exchange: { $ne: 'None' }, publicAPI: { $exists: true }, secretAPI: { $exists: true } });
 		result.forEach(user => {
 			//console.log(user)
 			if (user.publicAPI != undefined && user.publicAPI != null) {
