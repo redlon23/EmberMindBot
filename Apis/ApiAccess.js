@@ -8,9 +8,17 @@ const crypto = require("crypto")
  * All api implementations must implement its methods.
  */
 class ApiAccess{
-    constructor(){}
+    constructor(pblic, secret){
+        this.public = pblic;
+        this.secret = secret
+    }
     _getSignature(requestParams) {
         return crypto.createHmac('sha256', this.secret).update(requestParams, "utf8").digest('hex')
+    }
+
+    setApiKeys(pblic, secret){
+        this.public = pblic;
+        this.secret = secret
     }
     // === Check Price =====
 

@@ -2,13 +2,18 @@ const request = require('request-promise');
 const ApiAccess = require("./ApiAccess");
 const {sortParamsAlphabetically} = require("./util");
 
-class BinanceFuturesAccess extends ApiAccess {
-    constructor() {
-        super();
+class BinanceFuturesAccess extends ApiAccess { // Todo: CHEKC IF PUBLIC AND SECRET IS OKAY.
+    constructor(pblic, secret) {
+        super(pblic, secret);
         this.base = "https://testnet.binancefuture.com"
         // this.base = "https://fapi.binance.com"
         this.public = '9e0562c79dbc44344ba26738c70c8ca47bc493ea8f250911cd7b30e9106ef9ab';
         this.secret = 'cedf05c2d33e3c03344c8220f6aa7aed9538db9d7895da488310a3b8ab609c49';
+    }
+
+    setApiKeys(pblic, secret){
+        this.public = pblic;
+        this.secret = secret
     }
 
     async getAccountInformation() {
@@ -343,9 +348,10 @@ module.exports = BinanceFuturesAccess;
 
 async function testHere() {
     let bin = new BinanceFuturesAccess();
-    let awa = await bin.cancelSingleOrder("BTCUSDT","asgadfgadfhadhsdf").catch(err => console.log(err.message))
+    // let awa = await bin.cancelSingleOrder("BTCUSDT","asgadfgadfhadhsdf").catch(err => console.log(err.message))
+    let awa = await bin.getAccountBalance()
     console.log(awa)
 }
 
 
-// testHere();
+testHere();

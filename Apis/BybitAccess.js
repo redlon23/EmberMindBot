@@ -3,11 +3,16 @@ const ApiAccess = require("./ApiAccess");
 const {sortParamsAlphabetically} = require("./util");
 
 class BybitAccess extends ApiAccess {
-    constructor() {
-        super();
+    constructor(pblic, secret) {
+        super(pblic, secret);
         this.base = "https://api-testnet.bybit.com";
-        this.public = 'ND9TyDMuGRE8ltbzfW';
-        this.secret = 'IjiDHU7TZMNNunq86iB5P01eSzl4aSuUobXC';
+        // this.public = '';
+        // this.secret = '';
+    }
+
+    setApiKeys(pblic, secret){
+        this.public = pblic;
+        this.secret = secret
     }
 
     async getOrderBook(symbol) {

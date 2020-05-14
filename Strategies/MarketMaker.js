@@ -1,12 +1,12 @@
 const {Bybit, Binance} = require("../Apis/Common");
 
 class MarketMaker{
-    constructor(ApiAccess, settings) {
-        this.access = new ApiAccess();
+    constructor(ApiAccess, settings, pblic, secret) {
+        this.access = new ApiAccess(pblic, secret);
         this.state = ''
         this.openPosition = false;
         this.settings = {rsiKlinePeriod: "1m", symbol: "BTCUSDT",
-            quantity: 0.01, stopLoss: 5, takeProfit: 5,
+            quantity: 0.01, stopLoss: 100, takeProfit: 100,
             rsiOverBought: 51, rsiOverSold: 49};
         this.ma200 = 0.0;
         this.rsiValue = 0.0;
@@ -96,7 +96,10 @@ class MarketMaker{
     async handleReversal(price){
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price > this.ma200 && this.rsiValue > this.settings.rsiOverBought){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
+                if(this.mmOrderID)
+                    await this.access.cancelSingleOrder(this.settings.symbol, this.mmOrderID);
+                let data = await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount, this.access.ENUM.GOODTILLCANCEL)
+                console.log(data)
                 this.state = "Bullish";
                 this.openPosition = false;
                 // Reversal
@@ -106,7 +109,9 @@ class MarketMaker{
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price < this.ma200 && this.rsiValue < this.settings.rsiOverSold){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
+                if(this.mmOrderID)
+                    await this.access.cancelSingleOrder(this.settings.symbol, this.mmOrderID);
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount, this.access.ENUM.GOODTILLCANCEL)
                 this.state = "Bearish";
                 this.openPosition = false;
                 // Reversal
@@ -242,6 +247,7 @@ class MarketMaker{
      * @returns {Promise<void>}
      */
     async tradeLoop(){
+        //TODO: check internal flag.
         await this.checkPosition(); // Internally updates openPosition. Sets entryPrice & Contract size.
         if(this.openPosition){
             this.initOrderId = null;
@@ -258,6 +264,7 @@ class MarketMaker{
         //    Wait for next loop - End of loop
         }
         console.log("Waiting for the next loop...\n\n")
+    //    TODO: Check bot flag then change internal flag.
     }
 
     /**
@@ -340,11 +347,13 @@ class MarketMaker{
 }
 
 async function main(){
-    let mm = new MarketMaker(Bybit, {})
+    // let pblic = process.argv[2], secret = process.argv[3];
+    let pblic = 'kkbceTwJmL51V3Gdg2', secret = "O6dVZ8PbDT3KAFNNk5OHMTee2XIWReLfgOKN";
+    let mm = new MarketMaker(Bybit, {}, pblic, secret)
     await mm.tradeLoop()
     setInterval(async()=>{
         await mm.tradeLoop()
-    }, 60000)
+    }, 30000)
 }
 
 main()

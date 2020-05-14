@@ -9,8 +9,8 @@ const ENUMBINANCE = {
 
 
 class Binance {
-    constructor() {
-        this.access = new BinanceAccess();
+    constructor(pblic, secret) {
+        this.access = new BinanceAccess(pblic, secret);
         this.ENUM = ENUMBINANCE
     }
 
@@ -196,8 +196,8 @@ const ENUMBYBIT = Object.freeze({
 })
 
 class Bybit{
-    constructor() {
-        this.access = new BybitAccess();
+    constructor(pblic, secret) {
+        this.access = new BybitAccess(pblic, secret);
         this.ENUM = ENUMBYBIT;
     }
 
@@ -360,17 +360,18 @@ class Bybit{
 
     async placeLimitOrder(symbol, side, quantity, price, timeinforce){
         let data = await this.access.placeLimitOrder(symbol, side, quantity, price, timeinforce);
-        console.log(data)
         return data.result.order_id;
     }
 
     async placeLimitReduceOrder(symbol, side, quantity, price, timeinforce){
-        let data = await this.access.placeLimitOrder(symbol, side, quantity, price, timeinforce, true);
+        let data = await this.access.placeLimitOrder(symbol, side, quantity, price, timeinforce, "true");
+        // console.log(data)
         return data.result.order_id;
     }
 
     async placeMarketReduceOrder(symbol, side, quantity, timeinforce){
-        let data = await this.access.placeMarketOrder(symbol, side, quantity, timeinforce, true);
+        let data = await this.access.placeMarketOrder(symbol, side, quantity, timeinforce, "true");
+        // console.log(data)
         return data.result;
     }
 
