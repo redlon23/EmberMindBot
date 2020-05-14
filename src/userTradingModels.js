@@ -1,10 +1,10 @@
-const UserStrategySetting = require('./schemas/userStrategySetting')
-const Strategy = require('./schemas/strategy')
-const TradeLog = require('./schemas/tradeLog')
+const UserStrategySetting = require('./userStrategySetting')
+// const Strategy = require('./strategy')
+// const TradeLog = require('./tradeLog')
 
 exports.getStrategySetting = async (req) => {
 	try {
-		var result = await UserStrategySetting.findOne({ userId: req.userId, strategyId: req.strategyId })
+		var result = await UserStrategySetting.findOne({ userId: req.userId, strategyName: req.strategyName })
 	} catch (err) {
 		console.log(err)
 		result = null
