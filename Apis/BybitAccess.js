@@ -235,7 +235,7 @@ module.exports = BybitAccess;
 async function testHere(){
     const by = new BybitAccess();
     // let data = await by.cancelSingleOrder("BTCUSDT", "24234234")
-    let data = await by.getTradeRecords("BTCUSDT");
+    let data = await by.getWalletData("USDT");
     // let data = await by.getTradeRecords("BTCUSDT", (Date.now() - 1000 * 60 * 60 * 24) / 1000 | 0)
     // let data = await by.placeLimitOrder("BTCUSDT", "Buy", 0.1, 9000, "GoodTillCancel", false, 1);
     // let data = await by.cancelSingleOrder("BTCUSDT", '', 1)
@@ -243,7 +243,7 @@ async function testHere(){
     // console.log(data.result.data);
     // console.log(data.result.data.length);
 
-    console.log(data.result.data[data.result.data.length -1])
+    console.log(data)
 }
 
 // testHere();
