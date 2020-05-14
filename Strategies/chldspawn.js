@@ -2,6 +2,10 @@ const util = require('util');
 const fork = util.promisify(require('child_process').fork);
 const path = require("path")
 const numOfCpus = require("os").cpus().length;
+
+require('dotenv').config()
+const db = require('../src/database') //Need this defined -- don't delete it
+
 let accountList = [{public: "ND9TyDMuGRE8ltbzfW", secret: "IjiDHU7TZMNNunq86iB5P01eSzl4aSuUobXC"},
     {public: "kkbceTwJmL51V3Gdg2", secret: "O6dVZ8PbDT3KAFNNk5OHMTee2XIWReLfgOKN"}]
 let processList = [];
