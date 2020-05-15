@@ -154,15 +154,19 @@ class MarketMaker{
     async checkStopLoss(price){
         if(this.state === "Bearish"){ // SHORT POSITION
             if(price >= this.entryPrice + this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.LONG, this.positionAmount, this.access.ENUM.GOODTILLCANCEL)
                 this.openPosition = false;
+                this.entryPrice = 0;
+                this.positionAmount = 0;
                 console.log(`Stop loss hit for short position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
                 return true;
             }
         } else if (this.state === "Bullish"){ // LONG POSITION
             if(price <= this.entryPrice - this.settings.stopLoss){
-                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount)
+                await this.access.placeMarketReduceOrder(this.settings.symbol, this.access.ENUM.SHORT, this.positionAmount, this.access.ENUM.GOODTILLCANCEL)
                 this.openPosition = false;
+                this.entryPrice = 0;
+                this.positionAmount = 0;
                 console.log(`Stop loss hit for long position\nCurrent Price: ${price}\nEntry Price: ${this.entryPrice}`)
                 return true;
             }
@@ -333,9 +337,11 @@ class MarketMaker{
             console.log("Sleeping....")
             await this.sleep(15000)
             console.log("Waking up...")
-            let pos = await this.access.checkPosition(this.settings.symbol)
-            if (pos[0] === 0)
-                this.openPosition = false
+            let [positionAmount, positionEntryPrice, side] = await this.access.checkPosition(this.settings.symbol)
+            if (positionAmount === 0)
+                this.openPosition = false;
+                this.entryPrice = 0;
+                this.positionAmount = 0;
         }
         this.takeProfitId = null;
         console.log("Out of take profit loop")

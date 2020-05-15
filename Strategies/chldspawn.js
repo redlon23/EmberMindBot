@@ -43,25 +43,24 @@ async function main() {
     }
 
     setInterval(async()=>{
-        console.log("Check if any process needs to be killed!")
         let userData = await userModel.getAllUsers();
         let filterData = userData.filter((element) => {
             return element.publicAPI.length > 12
         })
+
         for (let i = 0; i < filterData.length; i++) {
             let data = await userTradingModels.getStrategySetting({
                 userId: filterData[i]._id,
                 strategyName: "Market Maker"
             })
+
             if(!filterData[i].tradingEnabled || !data.strategyIsEquipped){
                 let prcs = processlist[`${filterData[i]._id}`];
                 if(prcs){
-                    // console.log(prcs)
                     let isDead = prcs.kill();
                     if(isDead){
                         delete processlist[`${filterData[i]._id}`];
                     }
-
                 }
             }
         }
