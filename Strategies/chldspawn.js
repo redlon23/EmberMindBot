@@ -11,55 +11,59 @@ const db = require('../src/database') //Need this defined -- don't delete it
 //     {public: "kkbceTwJmL51V3Gdg2", secret: "O6dVZ8PbDT3KAFNNk5OHMTee2XIWReLfgOKN"}]
 let processlist = {};
 var numOfProcesses = 0;
-async function main() {
+
+async function getUserWithValidApis(){
     let userData = await userModel.getAllUsers();
     // Find all the users that have api keys
-    let filterData = userData.filter((element) => {
+    return userData.filter((element) => {
         return element.publicAPI.length > 12
-    })
-    for (let i = 0; i < filterData.length; i++) {
-        await (async function (i) {
-            // Get user settings for market maker
-            let data = await userTradingModels.getStrategySetting({
-                userId: filterData[i]._id,
-                strategyName: "Market Maker"
-            })
-            let settings = {
-                quantity: data.quantity,
-                takeProfit: data.takeProfit,
-                stopLoss: data.stopLoss,
-                rsiKlinePeriod: data.rsiKlinePeriod,
-                rsiOverBought: data.rsiOverBought,
-                rsiOverSold: data.rsiOverSold
-            }
-            // Settings needs to be string to be passed to a child process.
-            settings = JSON.stringify(settings)
+    });
+}
 
-            if(data.strategyIsEquipped && filterData[i].tradingEnabled){
-                const child = fork('MarketMaker.js', [`${filterData[i].publicAPI}`, `${filterData[i].secretAPI}`, settings], {});
-                processlist[`${filterData[i]._id}`] = child
-            }
-        }(i))
+async function startProcess(user, strategyDetails){
+    let settings = {
+        quantity: strategyDetails.quantity,
+        takeProfit: strategyDetails.takeProfit,
+        stopLoss: strategyDetails.stopLoss,
+        rsiKlinePeriod: strategyDetails.rsiKlinePeriod,
+        rsiOverBought: strategyDetails.rsiOverBought,
+        rsiOverSold: strategyDetails.rsiOverSold
     }
+    // Settings needs to be string to be passed to a child process.
+    settings = JSON.stringify(settings)
+    return fork('MarketMaker.js', [`${user.publicAPI}`, `${user.secretAPI}`, settings], {});
+}
 
+async function getUserStrategyDetails(user){
+    return await userTradingModels.getStrategySetting({
+        userId: user._id,
+        strategyName: "Market Maker"
+    })
+}
+
+async function main() {
     setInterval(async()=>{
-        let userData = await userModel.getAllUsers();
-        let filterData = userData.filter((element) => {
-            return element.publicAPI.length > 12
-        })
-
-        for (let i = 0; i < filterData.length; i++) {
-            let data = await userTradingModels.getStrategySetting({
-                userId: filterData[i]._id,
-                strategyName: "Market Maker"
-            })
-
-            if(!filterData[i].tradingEnabled || !data.strategyIsEquipped){
-                let prcs = processlist[`${filterData[i]._id}`];
+        let users = await getUserWithValidApis();
+        // Span the ones that are not in processList & trading enabled
+        for (let i = 0; i < users.length; i++) {
+            await (async function (i) {
+                let user = users[i];
+                let strategyDetails = await getUserStrategyDetails(user)
+                if(!processlist[`${user._id}`] && user.tradingEnabled && strategyDetails.strategyIsEquipped){
+                    processlist[`${user._id}`] = await startProcess(user, strategyDetails);
+                }
+            }(i))
+        }
+        // Kill the ones that are disabled
+        for (let i = 0; i < users.length; i++) {
+            let user = users[i];
+            let data = await getUserStrategyDetails(user)
+            if(!user.tradingEnabled || !data.strategyIsEquipped){
+                let prcs = processlist[`${user._id}`];
                 if(prcs){
                     let isDead = prcs.kill();
                     if(isDead){
-                        delete processlist[`${filterData[i]._id}`];
+                        delete processlist[`${user._id}`];
                     }
                 }
             }

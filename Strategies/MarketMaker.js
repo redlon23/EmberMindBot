@@ -226,6 +226,7 @@ class MarketMaker{
         }
         // Stop MarketMaking when in profit.
         if(!this.inProfit)
+            console.log("handleContinuesMarketMaking order is about to be placed...")
             await this.placeMMOrders(); // Internally saves mmOrderID.
     }
 

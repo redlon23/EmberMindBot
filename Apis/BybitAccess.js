@@ -6,8 +6,8 @@ class BybitAccess extends ApiAccess {
     constructor(pblic, secret) {
         super(pblic, secret);
         this.base = "https://api-testnet.bybit.com";
-        // this.public = '';
-        // this.secret = '';
+        // this.public = 'kkbceTwJmL51V3Gdg2';
+        // this.secret = 'O6dVZ8PbDT3KAFNNk5OHMTee2XIWReLfgOKN';
     }
 
     setApiKeys(pblic, secret){
@@ -246,4 +246,4 @@ async function testHere(){
     console.log(data)
 }
 
-// testHere();
+testHere();
