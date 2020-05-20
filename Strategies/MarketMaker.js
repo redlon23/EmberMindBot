@@ -21,7 +21,13 @@ class MarketMaker{
      * @returns {Promise<void>}
      */
     async handleState(){
-        this.ma200 = await this.access.getNMinuteMovingAverage(this.settings.symbol, 200);
+        if (this.settings.rsiKlinePeriod === '1h') {
+            this.ma200 = await this.access.getNMinuteMovingAverage(this.settings.symbol, 200 * 60);
+        } else if (this.settings.rsiKlinePeriod === '15m') {
+            this.ma200 = await this.access.getNMinuteMovingAverage(this.settings.symbol, 200 * 15);
+        } else {
+            this.ma200 = await this.access.getNMinuteMovingAverage(this.settings.symbol, 200);
+        }
         let currentPrice = await this.access.getSymbolPrice(this.settings.symbol);
         this._decideState(this.ma200, currentPrice);
     }
